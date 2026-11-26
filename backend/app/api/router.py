@@ -8,6 +8,8 @@ from app.api.routes.health import router as health_router
 from app.api.routes.documents import router as documents_router
 from app.api.routes.knowledge_base import router as knowledge_base_router
 from app.api.routes.chat import router as chat_router
+from app.api.routes.chatbot import router as chatbot_router
+from app.api.routes.public_chatbot import router as public_chatbot_router
 
 api_router = APIRouter()
 
@@ -17,3 +19,5 @@ api_router.include_router(company_router)
 api_router.include_router(documents_router)
 api_router.include_router(knowledge_base_router)
 api_router.include_router(chat_router)
+api_router.include_router(chatbot_router)
+api_router.include_router(public_chatbot_router)
