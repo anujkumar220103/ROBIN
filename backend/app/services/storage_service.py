@@ -1,6 +1,7 @@
 # Handles local and Cloudinary PDF storage behind one small storage interface.
 
 import hashlib
+import logging
 import tempfile
 import uuid
 import urllib.request
@@ -12,6 +13,12 @@ import cloudinary.utils
 from fastapi import UploadFile
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+# PDFs are binary blobs — Cloudinary resource_type must be "raw", not "image".
+# Using "image" causes upload failures or mismatched signed-URL generation.
+_CLOUDINARY_RESOURCE_TYPE = "raw"
 
 
 def cloudinary_is_configured() -> bool:
@@ -72,18 +79,28 @@ async def save_upload(company_id: uuid.UUID, document_id: uuid.UUID, upload: Upl
                     temp.write(chunk)
 
             folder = f"{settings.CLOUDINARY_FOLDER}/{company_id}"
+            logger.info(
+                "Uploading document %s to Cloudinary folder %s (size=%d bytes)",
+                document_id, folder, size,
+            )
             result = cloudinary.uploader.upload(
                 temp_path,
                 folder=folder,
                 public_id=str(document_id),
-                resource_type="image",
+                resource_type=_CLOUDINARY_RESOURCE_TYPE,
                 type="authenticated",
                 access_mode="authenticated",
                 overwrite=False,
                 invalidate=True,
             )
             public_id = result["public_id"]
+            logger.info("Cloudinary upload succeeded for document %s, public_id=%s", document_id, public_id)
             return f"cloudinary://{public_id}", digest.hexdigest(), size
+        except ValueError:
+            raise
+        except Exception:
+            logger.exception("Cloudinary upload failed for document %s", document_id)
+            raise
         finally:
             if temp_path:
                 Path(temp_path).unlink(missing_ok=True)
@@ -122,9 +139,11 @@ def delete_document_file(storage_path: str) -> None:
         if not cloudinary_is_configured():
             raise ValueError("Cloudinary is not configured.")
         _configure_cloudinary()
+        public_id = _cloudinary_public_id(storage_path)
+        logger.info("Deleting Cloudinary asset public_id=%s", public_id)
         cloudinary.uploader.destroy(
-            _cloudinary_public_id(storage_path),
-            resource_type="image",
+            public_id,
+            resource_type=_CLOUDINARY_RESOURCE_TYPE,
             type="authenticated",
             invalidate=True,
         )
@@ -152,9 +171,8 @@ def materialize_document(storage_path: str) -> Path:
     public_id = _cloudinary_public_id(storage_path)
     signed_url, _ = cloudinary.utils.cloudinary_url(
         public_id,
-        resource_type="image",
+        resource_type=_CLOUDINARY_RESOURCE_TYPE,
         type="authenticated",
-        format="pdf",
         secure=True,
         sign_url=True,
     )
@@ -162,6 +180,7 @@ def materialize_document(storage_path: str) -> Path:
     temp_dir = settings.upload_directory / ".downloads"
     temp_dir.mkdir(parents=True, exist_ok=True)
     temp_path = temp_dir / f"{uuid.uuid4().hex}.pdf"
+    logger.info("Materialising Cloudinary document to temp file (public_id=%s)", public_id)
     try:
         with urllib.request.urlopen(signed_url, timeout=30) as source:
             with temp_path.open("xb") as target:
@@ -173,4 +192,5 @@ def materialize_document(storage_path: str) -> Path:
         return temp_path.resolve()
     except Exception:
         temp_path.unlink(missing_ok=True)
+        logger.exception("Failed to download Cloudinary document (public_id=%s)", public_id)
         raise
