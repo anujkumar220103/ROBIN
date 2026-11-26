@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   BookOpen,
   ArrowRight,
-  ChevronRight,
 } from 'lucide-react'
 
 function Navbar() {
@@ -18,10 +17,13 @@ function Navbar() {
     <nav className="border-b border-border bg-surface/95 backdrop-blur-sm sticky top-0 z-10">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center shrink-0">
             <Bot size={16} className="text-white" />
           </div>
-          <span className="text-sm font-bold text-primary-text">ROBIN AI</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-bold text-primary-text">ROBIN AI</span>
+            <span className="text-[9px] text-secondary-text tracking-tight font-medium hidden sm:block">Retrieval-Oriented Bot for Intelligent Navigation</span>
+          </div>
         </div>
 
         <div className="hidden md:flex items-center gap-6 text-sm text-secondary-text">
@@ -107,37 +109,31 @@ const features = [
     icon: FileText,
     title: 'Document-Based Knowledge',
     description: 'Upload company PDFs and build a searchable knowledge base from your actual business content.',
-    phase: 'Phase 3',
   },
   {
     icon: ShieldCheck,
     title: 'Company Isolation',
     description: "Each company's knowledge base is completely isolated. Your data never mixes with another tenant's.",
-    phase: 'Available',
   },
   {
     icon: Search,
     title: 'Context-Aware Answers',
     description: 'Semantic retrieval finds the most relevant document sections to construct accurate, grounded answers.',
-    phase: 'Phase 5',
   },
   {
     icon: BookOpen,
     title: 'Source References',
     description: 'Every answer includes citations from the source documents so users can verify the information.',
-    phase: 'Phase 5',
   },
   {
     icon: MessageSquare,
     title: 'Chatbot Customization',
     description: 'Configure your chatbot name, appearance, and welcome message to match your brand.',
-    phase: 'Phase 6',
   },
   {
     icon: Code2,
     title: 'Website Integration',
     description: 'Embed your intelligent chatbot on any website with a single JavaScript snippet.',
-    phase: 'Phase 6',
   },
 ]
 
@@ -153,19 +149,12 @@ function Features() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {features.map(({ icon: Icon, title, description, phase }) => (
+          {features.map(({ icon: Icon, title, description }) => (
             <div key={title} className="bg-surface border border-border rounded-xl p-5">
-              <div className="flex items-start justify-between mb-3">
+              <div className="mb-3">
                 <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
                   <Icon size={18} className="text-accent" />
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  phase === 'Available'
-                    ? 'bg-success/10 text-success'
-                    : 'bg-gray-100 text-secondary-text'
-                }`}>
-                  {phase}
-                </span>
               </div>
               <h3 className="text-sm font-semibold text-primary-text mb-1.5">{title}</h3>
               <p className="text-xs text-secondary-text leading-relaxed">{description}</p>
@@ -178,10 +167,41 @@ function Features() {
 }
 
 const steps = [
-  { number: '1', title: 'Upload Documents', description: 'Upload your company PDF files to build the knowledge base.' },
-  { number: '2', title: 'Build Knowledge Base', description: 'ROBIN AI processes documents into a searchable vector index.' },
-  { number: '3', title: 'Configure Chatbot', description: 'Set up your chatbot name, appearance, and behavior.' },
-  { number: '4', title: 'Integrate Your Site', description: 'Embed the chatbot on your website with one script tag.' },
+  {
+    number: '1',
+    title: 'Create Your Account',
+    description: 'Sign up and register your company. Each account gets a fully isolated workspace — your data stays yours.',
+  },
+  {
+    number: '2',
+    title: 'Upload Documents',
+    description: 'Upload your company PDFs — product manuals, HR policies, support guides, or any internal knowledge.',
+  },
+  {
+    number: '3',
+    title: 'AI Processes Your Content',
+    description: 'ROBIN AI automatically splits, cleans, and indexes each document into a high-speed semantic vector store.',
+  },
+  {
+    number: '4',
+    title: 'Build Your Knowledge Base',
+    description: 'All processed documents become part of a searchable knowledge base your chatbot draws answers from.',
+  },
+  {
+    number: '5',
+    title: 'Configure Your Chatbot',
+    description: 'Set your chatbot name, greeting message, and brand colors to make it feel native to your product.',
+  },
+  {
+    number: '6',
+    title: 'Test in the Playground',
+    description: 'Ask questions and verify that the AI retrieves accurate, source-grounded answers before going live.',
+  },
+  {
+    number: '7',
+    title: 'Embed on Your Website',
+    description: 'Copy one JavaScript snippet and paste it into your site. Your intelligent assistant is instantly live.',
+  },
 ]
 
 function HowItWorks() {
@@ -190,24 +210,26 @@ function HowItWorks() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-2xl font-bold text-primary-text mb-3">How it works</h2>
-          <p className="text-secondary-text text-sm max-w-md mx-auto">Four steps from documents to a live intelligent assistant.</p>
+          <p className="text-secondary-text text-sm max-w-md mx-auto">
+            Seven steps from signup to a live intelligent assistant on your website.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {steps.map((step, i) => (
             <div key={step.number} className="relative">
-              <div className="bg-background border border-border rounded-xl p-5">
-                <div className="w-8 h-8 rounded-lg bg-accent text-white text-sm font-bold flex items-center justify-center mb-3">
-                  {step.number}
+              <div className="bg-background border border-border rounded-xl p-5 h-full">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-accent text-white text-sm font-bold flex items-center justify-center shrink-0">
+                    {step.number}
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div className="hidden xl:block flex-1 h-px bg-border" />
+                  )}
                 </div>
                 <h3 className="text-sm font-semibold text-primary-text mb-1.5">{step.title}</h3>
                 <p className="text-xs text-secondary-text leading-relaxed">{step.description}</p>
               </div>
-              {i < steps.length - 1 && (
-                <div className="hidden lg:flex absolute top-8 -right-2 z-10">
-                  <ChevronRight size={16} className="text-border" />
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -218,40 +240,71 @@ function HowItWorks() {
 
 function Footer() {
   return (
-    <footer className="border-t border-border bg-surface py-10">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded-md bg-accent flex items-center justify-center">
-                <Bot size={13} className="text-white" />
+    <footer className="border-t border-border bg-background">
+      {/* Main footer content */}
+      <div className="max-w-6xl mx-auto px-4 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+          {/* Brand column */}
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
+                <Bot size={15} className="text-white" />
               </div>
-              <span className="text-sm font-bold text-primary-text">ROBIN AI</span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-sm font-bold text-primary-text">ROBIN AI</span>
+                <span className="text-[9px] text-secondary-text font-medium">Retrieval-Oriented Bot for Intelligent Navigation</span>
+              </div>
             </div>
-            <p className="text-xs text-secondary-text max-w-xs">
-              Retrieval-Oriented Bot for Intelligent Navigation.<br />
-              Multi-tenant AI knowledge assistant platform.
+            <p className="text-xs text-secondary-text leading-relaxed max-w-xs mt-3">
+              Turn your company documents into an intelligent knowledge assistant.
+              Accurate, source-grounded answers for your customers and team — deployed in minutes.
             </p>
+            <div className="flex items-center gap-2 mt-5">
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+              <span className="text-xs text-secondary-text">All systems operational</span>
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 text-xs text-secondary-text">
-            <div>
-              <p className="font-medium text-primary-text mb-2">Product</p>
-              <div className="space-y-1.5">
-                <a href="#features" className="block hover:text-primary-text transition-colors">Features</a>
-                <a href="#how-it-works" className="block hover:text-primary-text transition-colors">How It Works</a>
-              </div>
-            </div>
-            <div>
-              <p className="font-medium text-primary-text mb-2">Account</p>
-              <div className="space-y-1.5">
-                <Link to="/login" className="block hover:text-primary-text transition-colors">Sign In</Link>
-                <Link to="/register" className="block hover:text-primary-text transition-colors">Get Started</Link>
-              </div>
-            </div>
+
+          {/* Product links */}
+          <div>
+            <p className="text-xs font-semibold text-primary-text uppercase tracking-wider mb-4">Product</p>
+            <ul className="space-y-2.5">
+              <li><a href="#features" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Features</a></li>
+              <li><a href="#how-it-works" className="text-xs text-secondary-text hover:text-primary-text transition-colors">How It Works</a></li>
+              <li><a href="#features" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Knowledge Base</a></li>
+              <li><a href="#features" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Website Integration</a></li>
+            </ul>
+          </div>
+
+          {/* Account links */}
+          <div>
+            <p className="text-xs font-semibold text-primary-text uppercase tracking-wider mb-4">Account</p>
+            <ul className="space-y-2.5">
+              <li><Link to="/login" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Sign In</Link></li>
+              <li><Link to="/register" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Create Account</Link></li>
+            </ul>
+
+            <p className="text-xs font-semibold text-primary-text uppercase tracking-wider mb-4 mt-7">Technology</p>
+            <ul className="space-y-2.5">
+              <li><span className="text-xs text-secondary-text">RAG Architecture</span></li>
+              <li><span className="text-xs text-secondary-text">Vector Search</span></li>
+              <li><span className="text-xs text-secondary-text">Multi-Tenant Isolation</span></li>
+            </ul>
           </div>
         </div>
-        <div className="border-t border-border mt-8 pt-6">
+      </div>
+
+      {/* Bottom bar */}
+      <div className="border-t border-border">
+        <div className="max-w-6xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-secondary-text">© 2026 ROBIN AI. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-secondary-text">Built with RAG + Vector Search</span>
+            <span className="text-secondary-text/30 text-xs">|</span>
+            <Link to="/register" className="text-xs text-accent font-medium hover:underline">
+              Get started free →
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
