@@ -13,6 +13,7 @@ coverage/
 .coverage
 uploads/
 chroma_data/
+qdrant_data/
 model_cache/
 .cache/
 *.egg-info/
@@ -23,3 +24,4 @@ Thumbs.db
 /README.md
 /docs/
 deployment.md
+!/deployment.md

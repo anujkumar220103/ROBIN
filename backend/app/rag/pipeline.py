@@ -58,7 +58,7 @@ def run_rag_pipeline(
     # 2. Retrieval query prepare karo — follow-up questions ke liye context add karo.
     retrieval_query = build_retrieval_query(question, history)
 
-    # 3. Company-specific ChromaDB collection se chunks retrieve karo.
+    # 3. Qdrant se company ke ready-document chunks retrieve karo.
     retrieval_start = time.monotonic()
     try:
         raw_chunks = search_company_knowledge(

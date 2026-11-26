@@ -1,7 +1,9 @@
-# Retrieves tenant-owned, ready-document chunks from ChromaDB.
+# Retrieves tenant-owned, ready-document chunks from Qdrant.
 
 import math
 import uuid
+
+from qdrant_client import models
 
 from app.core.config import settings
 from app.models.document import Document
@@ -36,40 +38,56 @@ def search_company_knowledge(db, company_id: uuid.UUID, query: str, top_k: int =
         return []
 
     store = get_vector_store()
-    name = collection_name(company_id)
-    if name not in [item.name for item in store._client.list_collections()]:
+    name = collection_name()
+    if not store._client.collection_exists(name):
         return []
     try:
-        collection = store._client.get_collection(name)
         query_embedding = get_embedding_model().embed_query(query)
-        response = collection.query(
-            query_embeddings=[query_embedding],
-            n_results=min(top_k, max(1, collection.count())),
-            include=["documents", "metadatas", "distances"],
+        response = store._client.query_points(
+            collection_name=name,
+            query=query_embedding,
+            query_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="company_id",
+                        match=models.MatchValue(value=str(company_id)),
+                    ),
+                    models.FieldCondition(
+                        key="document_id",
+                        match=models.MatchAny(any=sorted(ready_ids)),
+                    ),
+                    models.FieldCondition(
+                        key="embedding_model",
+                        match=models.MatchValue(value=settings.EMBEDDING_MODEL),
+                    ),
+                ],
+            ),
+            limit=max(1, top_k),
+            with_payload=True,
+            with_vectors=False,
         )
     except Exception as exc:
         raise RuntimeError("Knowledge base search is temporarily unavailable.") from exc
 
-    ids = response.get("ids", [[]])[0]
-    documents = response.get("documents", [[]])[0]
-    metadatas = response.get("metadatas", [[]])[0]
-    distances = response.get("distances", [[]])[0]
     results = []
-    for chunk_id, text, metadata, distance in zip(ids, documents, metadatas, distances):
+    for point in response.points:
+        metadata = point.payload or {}
         if not metadata or metadata.get("company_id") != str(company_id):
             continue
         if metadata.get("document_id") not in ready_ids:
             continue
-        distance_value = float(distance)
-        similarity = 1.0 - distance_value
+        if metadata.get("embedding_model") != settings.EMBEDDING_MODEL:
+            continue
+        similarity = float(point.score)
+        distance_value = 1.0 - similarity
         if not math.isfinite(distance_value) or not math.isfinite(similarity):
             continue
         results.append({
             "document_id": uuid.UUID(metadata["document_id"]),
             "filename": metadata["filename"],
             "page_number": int(metadata["page_number"]),
-            "chunk_id": chunk_id,
-            "text": text,
+            "chunk_id": metadata["chunk_id"],
+            "text": metadata["text"],
             "distance": distance_value,
             "similarity": similarity,
         })

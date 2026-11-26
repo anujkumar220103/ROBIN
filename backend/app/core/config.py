@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     EMBEDDING_BATCH_SIZE: int = 32
     CHUNK_SIZE_TOKENS: int = 200
     CHUNK_OVERLAP_TOKENS: int = 30
+    QDRANT_URL: str = ""
+    QDRANT_API_KEY: str = ""
+    QDRANT_COLLECTION_NAME: str = "robin_vectors"
+    QDRANT_PERSIST_DIR: str = "qdrant_data"
+    # Temporary source settings used only by the Chroma-to-Qdrant migration script.
+    CHROMA_MIGRATION_SOURCE: str = "local"
     CHROMA_PERSIST_DIR: str = "chroma_data"
     CHROMA_API_KEY: str = ""
     CHROMA_TENANT: str = ""
@@ -149,6 +155,10 @@ class Settings(BaseSettings):
             raise ValueError(
                 "WIDGET_SESSION_SECRET must be at least 32 characters in production."
             )
+        if self.APP_ENV == "production" and not (self.QDRANT_URL and self.QDRANT_API_KEY):
+            raise ValueError(
+                "QDRANT_URL and QDRANT_API_KEY are required in production."
+            )
         if self.MAX_UPLOAD_SIZE_MB <= 0 or self.MAX_PDF_PAGES <= 0:
             raise ValueError("Upload size and PDF page limits must be positive.")
         if self.CHUNK_SIZE_TOKENS <= 0 or self.CHUNK_OVERLAP_TOKENS < 0:
@@ -184,8 +194,8 @@ class Settings(BaseSettings):
         return path.resolve()
 
     @property
-    def chroma_directory(self) -> Path:
-        path = Path(self.CHROMA_PERSIST_DIR)
+    def qdrant_directory(self) -> Path:
+        path = Path(self.QDRANT_PERSIST_DIR)
         if not path.is_absolute():
             path = Path(__file__).resolve().parents[2] / path
         return path.resolve()

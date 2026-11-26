@@ -42,7 +42,7 @@ def readiness_check():
     vector_ready = True
     try:
         from app.rag.vector_store import get_vector_store
-        get_vector_store()
+        get_vector_store().check_connection()
     except Exception:
         vector_ready = False
 

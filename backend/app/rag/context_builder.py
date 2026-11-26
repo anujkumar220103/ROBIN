@@ -15,7 +15,7 @@ def filter_by_relevance(chunks: list[dict], min_similarity: float) -> list[dict]
     """Remove chunks below the similarity threshold.
 
     Similarity threshold irrelevant chunks ko filter karne mein help karta hai.
-    ChromaDB cosine distance use karta hai: similarity = 1 - distance.
+    Qdrant cosine score ko distance ke roop mein convert karta hai.
     """
     return [c for c in chunks if c.get("similarity", 0.0) >= min_similarity]
 

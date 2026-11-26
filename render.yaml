@@ -15,6 +15,10 @@ services:
         sync: false
       - key: DATABASE_DIRECT_URL
         sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: WIDGET_SESSION_SECRET
