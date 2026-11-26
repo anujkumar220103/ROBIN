@@ -56,10 +56,13 @@ export default function Sidebar({ open, onClose }) {
         {/* Logo and mobile close */}
         <div className="flex items-center justify-between h-14 px-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center shrink-0">
               <Bot size={16} className="text-white" />
             </div>
-            <span className="text-sm font-bold text-primary-text tracking-tight">ROBIN AI</span>
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="text-sm font-bold text-primary-text tracking-tight">ROBIN AI</span>
+              <span className="text-[8px] text-secondary-text font-medium leading-tight truncate">Retrieval-Oriented Bot for Intelligent Navigation</span>
+            </div>
           </div>
           <button
             onClick={onClose}

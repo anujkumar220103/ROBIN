@@ -18,10 +18,13 @@ function Navbar() {
     <nav className="border-b border-border bg-surface/95 backdrop-blur-sm sticky top-0 z-10">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center shrink-0">
             <Bot size={16} className="text-white" />
           </div>
-          <span className="text-sm font-bold text-primary-text">ROBIN AI</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-bold text-primary-text">ROBIN AI</span>
+            <span className="text-[9px] text-secondary-text tracking-tight font-medium hidden sm:block">Retrieval-Oriented Bot for Intelligent Navigation</span>
+          </div>
         </div>
 
         <div className="hidden md:flex items-center gap-6 text-sm text-secondary-text">
