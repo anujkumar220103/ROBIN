@@ -1,5 +1,6 @@
 # Provides authenticated tenant document upload and management APIs.
 
+import logging
 import uuid
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, File, status
@@ -28,6 +29,8 @@ from app.services.storage_service import (
     save_upload,
 )
 from app.db.session import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -62,7 +65,9 @@ async def upload_document(
     document_id = uuid.uuid4()
     storage_path = None
     try:
+        logger.info("Upload started: company=%s file=%r size_hint=%s", current_company.id, filename, file.size)
         storage_path, file_hash, file_size = await save_upload(current_company.id, document_id, file)
+        logger.info("Storage saved: document=%s path=%r hash=%s size=%d", document_id, storage_path, file_hash, file_size)
         try:
             pdf_path = materialize_document(storage_path)
             try:
@@ -72,6 +77,7 @@ async def upload_document(
                     pdf_path.unlink(missing_ok=True)
         except ValueError as exc:
             raise HTTPException(400, str(exc))
+        logger.info("PDF validated: document=%s pages=%d", document_id, page_count)
 
         existing = db.query(Document).filter(
             Document.company_id == current_company.id,
@@ -97,6 +103,7 @@ async def upload_document(
         db.add(document)
         try:
             db.commit()
+            logger.info("Document row committed: document=%s", document_id)
         except Exception:
             db.rollback()
             delete_document_file(str(storage_path))
@@ -106,11 +113,21 @@ async def upload_document(
         return DocumentUploadResponse(message="Document uploaded successfully", document=_document_response(document))
     except HTTPException:
         if storage_path is not None:
-            delete_document_file(str(storage_path))
+            try:
+                delete_document_file(str(storage_path))
+            except Exception:
+                logger.exception("Cleanup failed after HTTPException for document %s", document_id)
         raise
     except Exception:
+        logger.exception(
+            "Unhandled exception during upload for document %s (company %s, file %r)",
+            document_id, current_company.id, filename,
+        )
         if storage_path is not None:
-            delete_document_file(str(storage_path))
+            try:
+                delete_document_file(str(storage_path))
+            except Exception:
+                logger.exception("Cleanup also failed for document %s — storage may be orphaned", document_id)
         raise HTTPException(500, "The document could not be stored.")
 
 
