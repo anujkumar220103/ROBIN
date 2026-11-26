@@ -1,151 +1,166 @@
-# 🤖 ROBIN AI
+# ROBIN AI
 
 <div align="center">
 
 **Retrieval-Oriented Bot for Intelligent Navigation**
 
-Apne PDFs ko AI-powered knowledge base mein badlo aur har sawaal ka grounded, source-backed jawab pao.
+### An AI-powered, multi-tenant knowledge assistant that turns PDF documents into grounded, source-cited answers.
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white)](https://neon.tech/)
-[![Vector DB](https://img.shields.io/badge/Vector_DB-Qdrant-DC382D)](https://qdrant.tech/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white)](https://python.langchain.com/)
 [![Hugging Face](https://img.shields.io/badge/Hugging_Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/)
-[![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?logo=cloudinary&logoColor=white)](https://cloudinary.com/)
-[![Render](https://img.shields.io/badge/Render-000000?logo=render&logoColor=white)](https://render.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
+[![Sentence Transformers](https://img.shields.io/badge/Sentence_Transformers-FF6F00)](https://sbert.net/)
+[![Qdrant](https://img.shields.io/badge/Qdrant-DC382D?logo=qdrant&logoColor=white)](https://qdrant.tech/)
+[![Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
+[![Groq](https://img.shields.io/badge/Groq-F55036)](https://groq.com/)
+[![OpenRouter](https://img.shields.io/badge/OpenRouter-000000)](https://openrouter.ai/)
+[![PyMuPDF](https://img.shields.io/badge/PyMuPDF-ED1C24)](https://pymupdf.readthedocs.io/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 
-[Features](#-key-features) · [Architecture](#-architecture) · [Quick Start](#-quick-start) · [API](#-api-overview) · [Deployment](#-deployment) · [Contributing](#-contributing)
+[Key Features](#key-features) · [AI/ML Stack](#aiml-technology-stack) · [Architecture](#architecture) · [Quick Start](#quick-start) · [API](#api-overview) · [Deployment](#deployment)
 
 </div>
 
 ---
 
-## ✨ Key Features
+## Overview
 
-- **Multi-Tenant SaaS** — Har company ke liye isolated users, documents aur vector data.
-- **Secure Authentication** — JWT HTTP-only cookies, Argon2id passwords aur CSRF protection.
-- **PDF Knowledge Base** — PDF upload, text extraction, cleaning, chunking aur async ingestion.
-- **Vector Search** — Hugging Face embeddings ke saath tenant-aware Qdrant retrieval.
-- **Multi-Provider RAG** — Gemini, Groq aur OpenRouter support with fallback chain.
-- **Grounded Responses** — Context-based answers with similarity checks aur source references.
-- **Public Chat Widget** — Signed sessions aur embeddable chatbot jo kisi bhi website par run ho.
-- **Chatbot Controls** — Activation, public ID rotation, embed code aur playground.
-- **Document Management** — Visibility, download, delete, retry aur ingestion status controls.
-- **Production Ready** — Health checks, security headers, migrations, rate limits aur deployment configs.
+ROBIN AI is a full-stack Retrieval-Augmented Generation (RAG) platform for organizations that need accurate answers from private PDF knowledge bases.
 
-## 🧭 Dashboard Pages
+Users can upload documents, process them into semantic chunks, generate vector embeddings, retrieve relevant context, and receive answers from supported large language models. Retrieval is isolated per company, so every query uses only the authenticated tenant's knowledge base.
 
-| Page | Route | Purpose |
-|------|-------|---------|
-| Landing | `/` | Product introduction aur authentication entry |
-| Dashboard | `/dashboard` | Knowledge-base overview aur quick actions |
-| Documents | `/dashboard/documents` | PDF upload, processing aur management |
-| Playground | `/dashboard/playground` | Internal chatbot testing |
-| Chatbot Settings | `/dashboard/chatbot-settings` | Name, welcome message aur activation |
-| Integration | `/dashboard/integration` | Widget embed code aur public chatbot controls |
-| Profile | `/dashboard/profile` | Account aur company preferences |
+ROBIN also provides an embeddable public chat widget, an internal playground, document management, knowledge-base analytics, and configurable chatbot behavior.
 
-## 🏗️ Architecture
+## Key Features
+
+- **Document-grounded RAG** - PDF ingestion, cleaning, token-aware chunking, semantic retrieval, and source-cited generation.
+- **Multi-provider LLM fallback** - Google Gemini, Groq, and OpenRouter with configurable provider priority and automatic fallback.
+- **Semantic vector search** - Sentence Transformer embeddings stored and retrieved through Qdrant.
+- **Tenant isolation** - Documents and vector results are scoped to the authenticated company.
+- **Private document storage** - Cloudinary authenticated storage for uploaded PDFs.
+- **Secure authentication** - JWT cookies, Argon2id password hashing, and CSRF protection.
+- **Public chat widget** - Signed sessions, allowed-domain checks, rate limits, and embed integration.
+- **Knowledge-base operations** - Upload, reprocessing, retry, visibility, download, deletion, and ingestion status.
+- **Internal playground** - Interactive testing for tenant-specific questions and source responses.
+- **Production safeguards** - Health readiness checks, security headers, migrations, request limits, and environment validation.
+
+## AI/ML Technology Stack
+
+ROBIN is primarily an applied AI/ML system built around modern retrieval and generation techniques.
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| Document parsing | PyMuPDF | Extract text and metadata from PDFs |
+| Text processing | LangChain Text Splitters | Clean text and create token-aware overlapping chunks |
+| Embedding model | `sentence-transformers/all-MiniLM-L6-v2` | Convert documents and queries into dense vectors |
+| Embedding runtime | Hugging Face Sentence Transformers | Generate embeddings locally on CPU or GPU |
+| Vector database | Qdrant | Store, search, filter, and isolate tenant vectors |
+| RAG orchestration | Custom Python RAG pipeline | Retrieve context, enforce thresholds, build prompts, and validate responses |
+| LLM provider 1 | Google Gemini | Grounded answer generation |
+| LLM provider 2 | Groq | Fast LLM fallback |
+| LLM provider 3 | OpenRouter | OpenAI-compatible model fallback |
+| Response reliability | Similarity thresholds and source validation | Reduce unsupported answers and hallucinations |
+| Conversation context | Token-limited conversation history | Maintain relevant chat context |
+
+### RAG Pipeline
+
+```text
+PDF
+  -> Text Extraction
+  -> Text Cleaning
+  -> Token-Aware Chunking
+  -> Dense Embedding Generation
+  -> Tenant-Scoped Vector Indexing
+  -> Question Embedding
+  -> Semantic Retrieval
+  -> Similarity Filtering
+  -> Context Assembly
+  -> LLM Generation
+  -> Source and Response Validation
+  -> Grounded Answer
+```
+
+## Architecture
 
 ```mermaid
 flowchart LR
-    A[React + Vite] -->|HTTP / Cookies / CSRF| B[FastAPI]
-    B --> C[Neon PostgreSQL]
-    B --> D[PDF Processing]
-    D --> E[Text Chunking]
-    E --> F[Sentence Transformers]
-    F --> G[Qdrant Vector DB]
-    B --> H[RAG Pipeline]
-    G --> H
-    H --> I[Gemini]
-    H --> J[Groq]
-    H --> K[OpenRouter]
+    U[React User Interface] -->|HTTP, Cookies, CSRF| API[FastAPI Backend]
+    API --> DB[(Neon PostgreSQL)]
+    API --> PDF[PyMuPDF Document Processing]
+    PDF --> CHUNK[LangChain Text Chunking]
+    CHUNK --> EMB[Sentence Transformers]
+    EMB --> VECTOR[(Qdrant Vector Database)]
+    API --> RAG[RAG Retrieval Pipeline]
+    VECTOR --> RAG
+    RAG --> GEMINI[Google Gemini]
+    RAG --> GROQ[Groq]
+    RAG --> OPENROUTER[OpenRouter]
+    API --> CLOUD[Cloudinary Private Storage]
 ```
 
-### Document Ingestion
+## Dashboard Pages
 
-```text
-PDF Upload
-  → Validation
-  → Tenant Ownership Check
-  → PyMuPDF Text Extraction
-  → Text Cleaning
-  → Token-Aware Chunking
-  → Embedding Generation
-  → Qdrant Indexing
-  → PostgreSQL Status Update
-```
+| Page | Route | Purpose |
+|------|-------|---------|
+| Landing | `/` | Product introduction and authentication entry |
+| Dashboard | `/dashboard` | Knowledge-base overview and quick actions |
+| Documents | `/dashboard/documents` | Upload, process, inspect, and manage PDFs |
+| Playground | `/dashboard/playground` | Test tenant-specific RAG questions |
+| Chatbot Settings | `/dashboard/chatbot-settings` | Configure chatbot identity and behavior |
+| Integration | `/dashboard/integration` | Manage public access and embed code |
+| Profile | `/dashboard/profile` | View and update account and company details |
 
-### Question Answering
+## Full Technology Stack
 
-```text
-Question
-  → Tenant & Chatbot Resolution
-  → Query Processing
-  → Vector Retrieval
-  → Similarity Filtering
-  → Context Assembly
-  → LLM Provider
-  → Response Validation
-  → Answer + Sources
-```
-
-## 🛠️ Technology Stack
-
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 18, Vite 6, React Router 7, Tailwind CSS 3, Axios, Lucide |
+| Layer | Technologies |
+|-------|--------------|
+| AI/ML | LangChain, Hugging Face, Sentence Transformers, Qdrant, Gemini, Groq, OpenRouter |
 | Backend | Python 3.12, FastAPI, Pydantic 2, SQLAlchemy 2, Alembic |
+| Frontend | React 18, Vite 6, React Router 7, Tailwind CSS 3, Axios |
 | Database | Neon PostgreSQL, psycopg 3 |
 | Authentication | PyJWT, pwdlib/Argon2id, HTTP-only cookies, CSRF |
-| PDF Processing | PyMuPDF |
-| Text Chunking | LangChain Text Splitters |
-| Embeddings | `sentence-transformers/all-MiniLM-L6-v2` |
-| Vector Store | Qdrant Cloud or local persistent Qdrant |
-| LLM Providers | Google Gemini, Groq, OpenRouter |
-| Storage | Cloudinary private PDFs |
+| Documents | PyMuPDF, LangChain Text Splitters |
+| Storage | Cloudinary private PDF storage |
+| Deployment | Render and Vercel |
 | Testing | Pytest, FastAPI TestClient, HTTPX |
-| Deployment | Render (backend), Vercel (frontend) |
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 ROBIN/
 ├── backend/
 │   ├── app/
-│   │   ├── api/routes/       Health, auth, company, documents, chat, widget
-│   │   ├── core/             Settings and security helpers
-│   │   ├── db/               SQLAlchemy engine and session
-│   │   ├── models/           Company, user, document and chatbot models
-│   │   ├── rag/              PDF, embeddings, retrieval and RAG pipeline
-│   │   ├── schemas/          Pydantic request/response models
+│   │   ├── api/routes/       Authentication, documents, chat, chatbot, and public widget APIs
+│   │   ├── core/             Environment and security configuration
+│   │   ├── db/               SQLAlchemy engine and database sessions
+│   │   ├── models/           Company, user, document, and chatbot models
+│   │   ├── rag/              PDF loading, chunking, embeddings, retrieval, and generation
+│   │   ├── schemas/          Pydantic request and response models
 │   │   └── services/         Authentication and business services
 │   ├── alembic/              Database migrations
-│   ├── scripts/              Storage and vector migration utilities
-│   └── tests/                Backend test suite
+│   ├── scripts/              Vector and storage migration utilities
+│   └── tests/                Backend unit and integration tests
 ├── frontend/
 │   └── src/
-│       ├── components/       Reusable UI and layout components
+│       ├── components/       Shared UI and layout components
 │       ├── context/          Authentication state
 │       ├── pages/            Dashboard and public widget pages
-│       ├── routes/           Protected/public route guards
+│       ├── routes/           Protected and public routes
 │       └── services/         API clients
 ├── docs/                     Architecture and development documentation
-└── render.yaml               Render backend blueprint
+└── render.yaml               Render backend deployment blueprint
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
-- Python **3.12**
-- Node.js **20+**
+- Python 3.12
+- Node.js 20 or later
 - npm
-- Neon PostgreSQL database
-- Optional for full features: Cloudinary, Qdrant Cloud and at least one LLM provider
+- Neon PostgreSQL
+- Optional: Qdrant Cloud, Cloudinary, and at least one LLM API provider
 
 ### 1. Clone the Repository
 
@@ -164,14 +179,14 @@ python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Generate strong secrets:
+Generate two strong secrets:
 
 ```powershell
 python -c "import secrets; print(secrets.token_urlsafe(64))"
 python -c "import secrets; print(secrets.token_urlsafe(64))"
 ```
 
-Minimum local `.env` values:
+Minimum local environment values:
 
 ```env
 DATABASE_URL=postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require
@@ -180,7 +195,7 @@ WIDGET_SESSION_SECRET=<generated-widget-secret>
 CORS_ORIGINS=["http://localhost:5173"]
 ```
 
-Apply migrations and start:
+Apply database migrations and start the API:
 
 ```powershell
 python -m alembic upgrade head
@@ -200,33 +215,33 @@ npm run dev
 
 | Service | URL |
 |---------|-----|
-| Frontend | <http://localhost:5173> |
-| Backend API | <http://localhost:8000> |
-| Swagger UI | <http://localhost:8000/docs> |
-| ReDoc | <http://localhost:8000/redoc> |
-| Readiness | <http://localhost:8000/api/v1/health/ready> |
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:8000 |
+| Swagger UI | http://localhost:8000/docs |
+| ReDoc | http://localhost:8000/redoc |
+| Readiness check | http://localhost:8000/api/v1/health/ready |
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ### Backend
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | Neon pooled PostgreSQL URL |
-| `DATABASE_DIRECT_URL` | No | Direct URL for migrations |
+| `DATABASE_URL` | Yes | Neon pooled PostgreSQL connection string |
+| `DATABASE_DIRECT_URL` | No | Direct PostgreSQL connection for migrations |
 | `JWT_SECRET_KEY` | Yes | JWT signing secret |
-| `WIDGET_SESSION_SECRET` | Yes | Public widget session signing secret |
+| `WIDGET_SESSION_SECRET` | Yes | Signed public-widget session secret |
 | `CORS_ORIGINS` | Yes | JSON array of allowed frontend origins |
-| `COOKIE_SECURE` | Production | Use `true` behind HTTPS |
-| `COOKIE_SAMESITE` | Production | Usually `none` for cross-site cookies |
-| `QDRANT_URL` | Production | Qdrant Cloud endpoint |
+| `COOKIE_SECURE` | Production | Set to `true` behind HTTPS |
+| `COOKIE_SAMESITE` | Production | Cross-site deployment setting, commonly `none` |
+| `QDRANT_URL` | Production | Qdrant Cloud cluster endpoint |
 | `QDRANT_API_KEY` | Production | Qdrant Cloud API key |
 | `CLOUDINARY_*` | Recommended | Private PDF storage credentials |
-| `GEMINI_API_KEY` | Optional | Google Gemini credentials |
-| `GROQ_API_KEY` | Optional | Groq credentials |
-| `OPENROUTER_API_KEY` | Optional | OpenRouter credentials |
+| `GEMINI_API_KEY` | Optional | Google Gemini API key |
+| `GROQ_API_KEY` | Optional | Groq API key |
+| `OPENROUTER_API_KEY` | Optional | OpenRouter API key |
 
-Complete examples and provider settings are available in [`backend/.env.example`](backend/.env.example).
+The complete example is available in [`backend/.env.example`](backend/.env.example).
 
 ### Frontend
 
@@ -234,42 +249,41 @@ Complete examples and provider settings are available in [`backend/.env.example`
 |----------|-------------|
 | `VITE_API_BASE_URL` | FastAPI `/api/v1` base URL |
 
-## 🔌 API Overview
+## API Overview
 
 ### Authentication
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/v1/auth/register` | Register company and administrator |
-| `POST` | `/api/v1/auth/login` | Login and set secure cookies |
+| `POST` | `/api/v1/auth/register` | Register a company and administrator |
+| `POST` | `/api/v1/auth/login` | Authenticate and set secure cookies |
 | `POST` | `/api/v1/auth/logout` | Clear authentication cookies |
-| `GET` | `/api/v1/auth/me` | Get current account |
-| `PATCH` | `/api/v1/auth/me` | Update account profile |
+| `GET` | `/api/v1/auth/me` | Get the current account |
+| `PATCH` | `/api/v1/auth/me` | Update account details |
 
-### Core Resources
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET/PATCH` | `/api/v1/company/me` | Read or update company |
-| `POST/GET` | `/api/v1/documents/upload` | Upload and list documents |
-| `GET/PATCH/DELETE` | `/api/v1/documents/{id}` | Document operations |
-| `POST` | `/api/v1/documents/{id}/retry` | Retry failed ingestion |
-| `GET` | `/api/v1/knowledge-base/stats` | Knowledge-base statistics |
-| `POST` | `/api/v1/knowledge-base/search` | Tenant-aware vector search |
-| `POST` | `/api/v1/chat/ask` | Ask the internal chatbot |
-| `GET/PATCH` | `/api/v1/chatbot` | Read or update chatbot settings |
-| `POST` | `/api/v1/chatbot/activate` | Activate public chatbot |
-| `POST` | `/api/v1/chatbot/rotate-id` | Rotate public widget ID |
-
-### Public Widget
+### RAG and Documents
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/v1/public/chatbots/{public_id}/config` | Load widget configuration |
-| `POST` | `/api/v1/public/chatbots/{public_id}/session` | Create signed public session |
-| `POST` | `/api/v1/public/chatbots/{public_id}/ask` | Ask the public chatbot |
+| `POST/GET` | `/api/v1/documents/upload` | Upload or list documents |
+| `GET/PATCH/DELETE` | `/api/v1/documents/{id}` | Read, update, or delete a document |
+| `POST` | `/api/v1/documents/{id}/retry` | Retry failed document ingestion |
+| `GET` | `/api/v1/knowledge-base/stats` | Return knowledge-base statistics |
+| `POST` | `/api/v1/knowledge-base/search` | Perform tenant-aware semantic search |
+| `POST` | `/api/v1/chat/ask` | Ask the internal RAG chatbot |
 
-## 🧪 Testing
+### Chatbot and Public Widget
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET/PATCH` | `/api/v1/chatbot` | Read or update chatbot configuration |
+| `POST` | `/api/v1/chatbot/activate` | Activate the public chatbot |
+| `POST` | `/api/v1/chatbot/rotate-id` | Rotate the public chatbot ID |
+| `GET` | `/api/v1/public/chatbots/{public_id}/config` | Load public widget configuration |
+| `POST` | `/api/v1/public/chatbots/{public_id}/session` | Create a signed widget session |
+| `POST` | `/api/v1/public/chatbots/{public_id}/ask` | Ask the public RAG chatbot |
+
+## Testing
 
 Backend:
 
@@ -287,68 +301,65 @@ npm run lint
 npm run build
 ```
 
-## 🌐 Deployment
+## Deployment
 
-### Backend — Render
+### Backend on Render
 
-- Python: **3.12**
-- Build: `pip install -r requirements.txt`
-- Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Python: 3.12
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 - Health check: `/api/v1/health/ready`
-- Migration: `alembic upgrade head`
+- Database migration: `alembic upgrade head`
 
-### Frontend — Vercel
+### Frontend on Vercel
 
-- Root: `frontend`
+- Root directory: `frontend`
 - Framework: Vite
-- Build: `npm run build`
+- Build command: `npm run build`
 - Output: `dist`
-- Environment: `VITE_API_BASE_URL=https://your-render-service.onrender.com/api/v1`
+- Environment variable: `VITE_API_BASE_URL=https://your-render-service.onrender.com/api/v1`
 
-Before deployment, configure Neon PostgreSQL, Qdrant Cloud, Cloudinary and at least one LLM provider in the backend environment.
+Configure Neon PostgreSQL, Qdrant Cloud, Cloudinary, and at least one LLM provider before production deployment.
 
-## 🔒 Security
+## Security
 
 - Passwords are hashed with Argon2id.
 - JWTs are stored in HTTP-only cookies, never browser storage.
 - Mutation endpoints use CSRF protection.
-- CORS allows explicit origins only.
-- Database queries preserve company-level tenant isolation.
-- PDF downloads use tenant ownership validation and authenticated/private storage.
-- Public widget sessions use signed, short-lived tokens and origin/rate limits.
-- Secrets and vector/database data are excluded from Git.
+- CORS uses explicit allowed origins.
+- Database and vector operations preserve company-level tenant isolation.
+- PDF downloads require tenant ownership and use authenticated/private storage.
+- Public widget sessions use signed tokens, domain allowlists, and rate limits.
+- Secrets and generated vector/database data are excluded from Git.
 
-## ⚠️ Known Operational Notes
+## Known Operational Notes
 
-- JWT logout clears the browser cookie; it does not maintain a server-side token revocation registry.
+- Logout clears the browser cookie but does not maintain a server-side JWT revocation registry.
 - Public and chat limits use application-level counters.
-- A vector collection dimension must remain compatible with the configured embedding model.
-- Migrating from ChromaDB to Qdrant requires an explicit Chroma export and Qdrant re-index/migration procedure.
+- The vector collection dimension must remain compatible with the configured embedding model.
+- ChromaDB to Qdrant migration requires a separate export and re-indexing procedure.
 
-## 📚 Documentation
+## Documentation
 
 - [System Architecture](docs/architecture.md)
 - [Authentication Flow](docs/authentication-flow.md)
 - [Database Design](docs/database-design.md)
 - [Development Roadmap](docs/development-roadmap.md)
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository.
-2. Create a focused branch:
-   ```powershell
-   git checkout -b feature/my-feature
-   ```
+2. Create a focused feature branch.
 3. Implement and test your changes.
-4. Keep secrets out of commits.
-5. Open a Pull Request with a clear description and validation steps.
+4. Keep API keys and environment secrets out of commits.
+5. Open a pull request with clear validation steps.
 
-## 📄 License
+## License
 
 No license file is currently included. Copyright and usage terms have not yet been specified.
 
 ---
 
 <div align="center">
-Built with ❤️ for document-grounded AI experiences.
+Built for private, document-grounded AI experiences.
 </div>
