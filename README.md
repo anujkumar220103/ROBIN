@@ -11,6 +11,11 @@ Apne PDFs ko AI-powered knowledge base mein badlo aur har sawaal ka grounded, so
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Vector DB](https://img.shields.io/badge/Vector_DB-Qdrant-DC382D)](https://qdrant.tech/)
+[![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white)](https://python.langchain.com/)
+[![Hugging Face](https://img.shields.io/badge/Hugging_Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/)
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?logo=cloudinary&logoColor=white)](https://cloudinary.com/)
+[![Render](https://img.shields.io/badge/Render-000000?logo=render&logoColor=white)](https://render.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
 
 [Features](#-key-features) · [Architecture](#-architecture) · [Quick Start](#-quick-start) · [API](#-api-overview) · [Deployment](#-deployment) · [Contributing](#-contributing)
 
@@ -129,7 +134,6 @@ ROBIN/
 │       ├── routes/           Protected/public route guards
 │       └── services/         API clients
 ├── docs/                     Architecture and development documentation
-├── deployment.md             Production deployment guide
 └── render.yaml               Render backend blueprint
 ```
 
@@ -285,8 +289,6 @@ npm run build
 
 ## 🌐 Deployment
 
-Production setup is documented in [`deployment.md`](deployment.md).
-
 ### Backend — Render
 
 - Python: **3.12**
@@ -321,7 +323,7 @@ Before deployment, configure Neon PostgreSQL, Qdrant Cloud, Cloudinary and at le
 - JWT logout clears the browser cookie; it does not maintain a server-side token revocation registry.
 - Public and chat limits use application-level counters.
 - A vector collection dimension must remain compatible with the configured embedding model.
-- Migrating from ChromaDB to Qdrant requires the migration procedure in [`deployment.md`](deployment.md).
+- Migrating from ChromaDB to Qdrant requires an explicit Chroma export and Qdrant re-index/migration procedure.
 
 ## 📚 Documentation
 
@@ -329,7 +331,6 @@ Before deployment, configure Neon PostgreSQL, Qdrant Cloud, Cloudinary and at le
 - [Authentication Flow](docs/authentication-flow.md)
 - [Database Design](docs/database-design.md)
 - [Development Roadmap](docs/development-roadmap.md)
-- [Production Deployment](deployment.md)
 
 ## 🤝 Contributing
 
