@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   BookOpen,
   ArrowRight,
-  ChevronRight,
 } from 'lucide-react'
 
 function Navbar() {
@@ -168,10 +167,41 @@ function Features() {
 }
 
 const steps = [
-  { number: '1', title: 'Upload Documents', description: 'Upload your company PDF files to build the knowledge base.' },
-  { number: '2', title: 'Build Knowledge Base', description: 'ROBIN AI processes documents into a searchable vector index.' },
-  { number: '3', title: 'Configure Chatbot', description: 'Set up your chatbot name, appearance, and behavior.' },
-  { number: '4', title: 'Integrate Your Site', description: 'Embed the chatbot on your website with one script tag.' },
+  {
+    number: '1',
+    title: 'Create Your Account',
+    description: 'Sign up and register your company. Each account gets a fully isolated workspace — your data stays yours.',
+  },
+  {
+    number: '2',
+    title: 'Upload Documents',
+    description: 'Upload your company PDFs — product manuals, HR policies, support guides, or any internal knowledge.',
+  },
+  {
+    number: '3',
+    title: 'AI Processes Your Content',
+    description: 'ROBIN AI automatically splits, cleans, and indexes each document into a high-speed semantic vector store.',
+  },
+  {
+    number: '4',
+    title: 'Build Your Knowledge Base',
+    description: 'All processed documents become part of a searchable knowledge base your chatbot draws answers from.',
+  },
+  {
+    number: '5',
+    title: 'Configure Your Chatbot',
+    description: 'Set your chatbot name, greeting message, and brand colors to make it feel native to your product.',
+  },
+  {
+    number: '6',
+    title: 'Test in the Playground',
+    description: 'Ask questions and verify that the AI retrieves accurate, source-grounded answers before going live.',
+  },
+  {
+    number: '7',
+    title: 'Embed on Your Website',
+    description: 'Copy one JavaScript snippet and paste it into your site. Your intelligent assistant is instantly live.',
+  },
 ]
 
 function HowItWorks() {
@@ -180,24 +210,26 @@ function HowItWorks() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-2xl font-bold text-primary-text mb-3">How it works</h2>
-          <p className="text-secondary-text text-sm max-w-md mx-auto">Four steps from documents to a live intelligent assistant.</p>
+          <p className="text-secondary-text text-sm max-w-md mx-auto">
+            Seven steps from signup to a live intelligent assistant on your website.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {steps.map((step, i) => (
             <div key={step.number} className="relative">
-              <div className="bg-background border border-border rounded-xl p-5">
-                <div className="w-8 h-8 rounded-lg bg-accent text-white text-sm font-bold flex items-center justify-center mb-3">
-                  {step.number}
+              <div className="bg-background border border-border rounded-xl p-5 h-full">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-accent text-white text-sm font-bold flex items-center justify-center shrink-0">
+                    {step.number}
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div className="hidden xl:block flex-1 h-px bg-border" />
+                  )}
                 </div>
                 <h3 className="text-sm font-semibold text-primary-text mb-1.5">{step.title}</h3>
                 <p className="text-xs text-secondary-text leading-relaxed">{step.description}</p>
               </div>
-              {i < steps.length - 1 && (
-                <div className="hidden lg:flex absolute top-8 -right-2 z-10">
-                  <ChevronRight size={16} className="text-border" />
-                </div>
-              )}
             </div>
           ))}
         </div>
