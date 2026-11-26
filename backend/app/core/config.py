@@ -53,6 +53,46 @@ class Settings(BaseSettings):
     MAX_CONCURRENT_INGESTIONS: int = 1
     MAX_QUERY_LENGTH: int = 1000
 
+    # --- LLM Providers ---
+    # Provider order determines which LLM is tried first, then fallback.
+    LLM_PROVIDER_ORDER: str = "gemini,groq,openrouter"
+    LLM_ENABLED_PROVIDERS: str = "gemini,groq,openrouter"
+
+    # Google Gemini
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.0-flash"
+
+    # Groq
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.1-8b-instant"
+
+    # OpenRouter (OpenAI-compatible endpoint)
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "meta-llama/llama-3.1-8b-instruct:free"
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+
+    # Generation settings
+    LLM_TEMPERATURE: float = 0.1
+    LLM_MAX_OUTPUT_TOKENS: int = 1024
+    LLM_PROVIDER_TIMEOUT_SECONDS: int = 20
+    LLM_MAX_RETRIES: int = 1
+    LLM_TOTAL_TIMEOUT_SECONDS: int = 60
+
+    # Retrieval settings
+    RAG_RETRIEVAL_TOP_K: int = 10
+    RAG_CONTEXT_TOP_K: int = 5
+    RAG_MIN_SIMILARITY: float = 0.35
+    RAG_MAX_CONTEXT_TOKENS: int = 3000
+    RAG_MAX_QUESTION_LENGTH: int = 1000
+
+    # Conversation history
+    RAG_MAX_HISTORY_MESSAGES: int = 6
+    RAG_MAX_HISTORY_TOKENS: int = 1000
+
+    # Chat rate limiting
+    CHAT_RATE_LIMIT_PER_MINUTE: int = 10
+    CHAT_MAX_CONCURRENT_REQUESTS: int = 2
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -97,6 +137,14 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.APP_ENV == "production"
+
+    @property
+    def provider_order(self) -> list[str]:
+        return [p.strip().lower() for p in self.LLM_PROVIDER_ORDER.split(",") if p.strip()]
+
+    @property
+    def enabled_providers(self) -> list[str]:
+        return [p.strip().lower() for p in self.LLM_ENABLED_PROVIDERS.split(",") if p.strip()]
 
     @property
     def upload_directory(self) -> Path:
