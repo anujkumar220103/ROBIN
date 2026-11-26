@@ -15,27 +15,27 @@ import {
 function Navbar() {
   return (
     <nav className="border-b border-border bg-surface/95 backdrop-blur-sm sticky top-0 z-10">
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center shrink-0">
-            <Bot size={16} className="text-white" />
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center shrink-0">
+            <Bot size={19} className="text-white" />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-bold text-primary-text">ROBIN AI</span>
-            <span className="text-[9px] text-secondary-text tracking-tight font-medium hidden sm:block">Retrieval-Oriented Bot for Intelligent Navigation</span>
+            <span className="text-base font-bold text-primary-text">ROBIN AI</span>
+            <span className="text-[10px] text-secondary-text tracking-tight font-medium hidden sm:block">Retrieval-Oriented Bot for Intelligent Navigation</span>
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-6 text-sm text-secondary-text">
+        <div className="hidden md:flex items-center gap-8 text-base text-secondary-text">
           <a href="#features" className="hover:text-primary-text transition-colors">Features</a>
           <a href="#how-it-works" className="hover:text-primary-text transition-colors">How It Works</a>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link to="/login" className="text-sm text-secondary-text hover:text-primary-text transition-colors font-medium">
+        <div className="flex items-center gap-4">
+          <Link to="/login" className="text-base text-secondary-text hover:text-primary-text transition-colors font-medium">
             Sign In
           </Link>
-          <Link to="/register" className="btn-primary text-xs px-3 py-1.5">
+          <Link to="/register" className="btn-primary text-sm px-4 py-2">
             Get Started
           </Link>
         </div>
@@ -46,17 +46,17 @@ function Navbar() {
 
 function Hero() {
   return (
-    <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 text-accent text-xs font-medium mb-6">
+    <section className="max-w-7xl mx-auto px-5 sm:px-6 pt-12 pb-12 text-center">
+      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-accent/20 bg-accent/5 text-accent text-sm font-medium mb-5">
         <span className="w-1.5 h-1.5 rounded-full bg-accent"></span>
         Multi-tenant AI knowledge platform
       </div>
 
-      <h1 className="text-4xl md:text-5xl font-bold text-primary-text tracking-tight leading-tight mb-5">
+      <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary-text tracking-tight leading-tight mb-4">
         Your business knowledge,<br />ready to answer.
       </h1>
 
-      <p className="text-lg text-secondary-text max-w-2xl mx-auto mb-8">
+      <p className="text-lg md:text-xl text-secondary-text max-w-4xl mx-auto mb-6">
         Turn company documents into intelligent knowledge assistants that provide
         relevant, source-based answers to customers and employees.
       </p>
@@ -71,7 +71,7 @@ function Hero() {
       </div>
 
       {/* Product preview — clearly labeled */}
-      <div className="mt-14 bg-surface border border-border rounded-xl shadow-sm max-w-3xl mx-auto overflow-hidden">
+      <div className="mt-10 bg-surface border border-border rounded-xl shadow-sm max-w-4xl mx-auto overflow-hidden text-left">
         <div className="border-b border-border px-4 py-2.5 flex items-center gap-2 bg-background">
           <div className="flex gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-gray-200"></span>
@@ -80,18 +80,18 @@ function Hero() {
           </div>
           <span className="text-xs text-secondary-text ml-2">ROBIN AI — Interface Preview</span>
         </div>
-        <div className="p-6 text-left space-y-3">
+        <div className="p-5 sm:p-6 space-y-3">
           <div className="flex gap-3">
             <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
               <span className="text-xs font-semibold text-secondary-text">U</span>
             </div>
-            <div className="bg-background border border-border rounded-lg px-4 py-2.5 text-sm text-primary-text max-w-sm">
+            <div className="bg-background border border-border rounded-lg px-4 py-3 text-base text-primary-text max-w-lg">
               What is our refund policy for annual subscriptions?
             </div>
           </div>
           <div className="flex gap-3 justify-end">
-            <div className="bg-accent/5 border border-accent/20 rounded-lg px-4 py-2.5 text-sm text-primary-text max-w-sm">
-              <p className="text-secondary-text text-xs mb-1 font-medium">RAG answer — Phase 5</p>
+            <div className="bg-accent/5 border border-accent/20 rounded-lg px-4 py-3 text-base text-primary-text max-w-lg">
+              <p className="text-secondary-text text-sm mb-1 font-medium">RAG answer — Phase 5</p>
               AI answer will appear here, grounded in your uploaded documents with source citations.
             </div>
             <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shrink-0">
@@ -140,10 +140,10 @@ const features = [
 function Features() {
   return (
     <section id="features" className="bg-background py-20">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6">
         <div className="text-center mb-12">
-          <h2 className="text-2xl font-bold text-primary-text mb-3">Everything you need</h2>
-          <p className="text-secondary-text max-w-xl mx-auto text-sm">
+          <h2 className="text-3xl font-bold text-primary-text mb-3">Everything you need</h2>
+          <p className="text-secondary-text max-w-2xl mx-auto text-base">
             From document ingestion to intelligent answers — built for real business use cases.
           </p>
         </div>
@@ -156,8 +156,8 @@ function Features() {
                   <Icon size={18} className="text-accent" />
                 </div>
               </div>
-              <h3 className="text-sm font-semibold text-primary-text mb-1.5">{title}</h3>
-              <p className="text-xs text-secondary-text leading-relaxed">{description}</p>
+              <h3 className="text-base font-semibold text-primary-text mb-1.5">{title}</h3>
+              <p className="text-sm text-secondary-text leading-relaxed">{description}</p>
             </div>
           ))}
         </div>
@@ -207,10 +207,10 @@ const steps = [
 function HowItWorks() {
   return (
     <section id="how-it-works" className="py-20 bg-surface">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6">
         <div className="text-center mb-12">
-          <h2 className="text-2xl font-bold text-primary-text mb-3">How it works</h2>
-          <p className="text-secondary-text text-sm max-w-md mx-auto">
+          <h2 className="text-3xl font-bold text-primary-text mb-3">How it works</h2>
+          <p className="text-secondary-text text-base max-w-lg mx-auto">
             Seven steps from signup to a live intelligent assistant on your website.
           </p>
         </div>
@@ -220,15 +220,15 @@ function HowItWorks() {
             <div key={step.number} className="relative">
               <div className="bg-background border border-border rounded-xl p-5 h-full">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-accent text-white text-sm font-bold flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-accent text-white text-base font-bold flex items-center justify-center shrink-0">
                     {step.number}
                   </div>
                   {i < steps.length - 1 && (
                     <div className="hidden xl:block flex-1 h-px bg-border" />
                   )}
                 </div>
-                <h3 className="text-sm font-semibold text-primary-text mb-1.5">{step.title}</h3>
-                <p className="text-xs text-secondary-text leading-relaxed">{step.description}</p>
+                <h3 className="text-base font-semibold text-primary-text mb-1.5">{step.title}</h3>
+                <p className="text-sm text-secondary-text leading-relaxed">{step.description}</p>
               </div>
             </div>
           ))}
@@ -242,7 +242,7 @@ function Footer() {
   return (
     <footer className="border-t border-border bg-background">
       {/* Main footer content */}
-      <div className="max-w-6xl mx-auto px-4 py-14">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 py-14">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand column */}
           <div className="md:col-span-2">
