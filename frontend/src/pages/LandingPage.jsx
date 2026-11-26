@@ -110,37 +110,31 @@ const features = [
     icon: FileText,
     title: 'Document-Based Knowledge',
     description: 'Upload company PDFs and build a searchable knowledge base from your actual business content.',
-    phase: 'Phase 3',
   },
   {
     icon: ShieldCheck,
     title: 'Company Isolation',
     description: "Each company's knowledge base is completely isolated. Your data never mixes with another tenant's.",
-    phase: 'Available',
   },
   {
     icon: Search,
     title: 'Context-Aware Answers',
     description: 'Semantic retrieval finds the most relevant document sections to construct accurate, grounded answers.',
-    phase: 'Phase 5',
   },
   {
     icon: BookOpen,
     title: 'Source References',
     description: 'Every answer includes citations from the source documents so users can verify the information.',
-    phase: 'Phase 5',
   },
   {
     icon: MessageSquare,
     title: 'Chatbot Customization',
     description: 'Configure your chatbot name, appearance, and welcome message to match your brand.',
-    phase: 'Phase 6',
   },
   {
     icon: Code2,
     title: 'Website Integration',
     description: 'Embed your intelligent chatbot on any website with a single JavaScript snippet.',
-    phase: 'Phase 6',
   },
 ]
 
@@ -156,19 +150,12 @@ function Features() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {features.map(({ icon: Icon, title, description, phase }) => (
+          {features.map(({ icon: Icon, title, description }) => (
             <div key={title} className="bg-surface border border-border rounded-xl p-5">
-              <div className="flex items-start justify-between mb-3">
+              <div className="mb-3">
                 <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
                   <Icon size={18} className="text-accent" />
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  phase === 'Available'
-                    ? 'bg-success/10 text-success'
-                    : 'bg-gray-100 text-secondary-text'
-                }`}>
-                  {phase}
-                </span>
               </div>
               <h3 className="text-sm font-semibold text-primary-text mb-1.5">{title}</h3>
               <p className="text-xs text-secondary-text leading-relaxed">{description}</p>
