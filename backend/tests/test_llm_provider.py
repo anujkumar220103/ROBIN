@@ -106,6 +106,60 @@ class TestInvokeWithFallback:
         assert result["provider"] == "groq"
         assert result["fallback_used"] is True
 
+    def test_retired_gemini_model_falls_back_without_retry(self, monkeypatch):
+        from app.rag import llm_provider as lp
+
+        gemini_mock = MagicMock()
+        gemini_mock.invoke.side_effect = RuntimeError(
+            "404 NOT_FOUND: This model is no longer available."
+        )
+        groq_mock = MagicMock()
+        groq_mock.invoke.return_value = _make_response(_valid_json_answer())
+
+        monkeypatch.setattr(lp.settings, "LLM_PROVIDER_ORDER", "gemini,groq")
+        monkeypatch.setattr(lp.settings, "LLM_ENABLED_PROVIDERS", "gemini,groq")
+        monkeypatch.setattr(lp.settings, "LLM_TOTAL_TIMEOUT_SECONDS", 10)
+        monkeypatch.setattr(lp.settings, "LLM_MAX_RETRIES", 1)
+        monkeypatch.setattr(lp, "_BUILDERS", {
+            "gemini": lambda: gemini_mock,
+            "groq": lambda: groq_mock,
+        })
+
+        result = lp.invoke_with_fallback(
+            ["test message"],
+        )
+
+        assert result["provider"] == "groq"
+        assert result["fallback_used"] is True
+        assert gemini_mock.invoke.call_count == 1
+
+    def test_missing_provider_package_skips_to_next_provider(self, monkeypatch):
+        from app.rag import llm_provider as lp
+
+        gemini_mock = MagicMock()
+        gemini_mock.invoke.side_effect = RuntimeError("503 service unavailable")
+        openrouter_mock = MagicMock()
+        openrouter_mock.invoke.return_value = _make_response(_valid_json_answer())
+
+        def missing_groq_package():
+            raise ModuleNotFoundError("No module named 'langchain_groq'")
+
+        monkeypatch.setattr(lp.settings, "LLM_PROVIDER_ORDER", "gemini,groq,openrouter")
+        monkeypatch.setattr(lp.settings, "LLM_ENABLED_PROVIDERS", "gemini,groq,openrouter")
+        monkeypatch.setattr(lp.settings, "LLM_TOTAL_TIMEOUT_SECONDS", 10)
+        monkeypatch.setattr(lp.settings, "LLM_MAX_RETRIES", 0)
+        monkeypatch.setattr(lp, "_BUILDERS", {
+            "gemini": lambda: gemini_mock,
+            "groq": missing_groq_package,
+            "openrouter": lambda: openrouter_mock,
+        })
+
+        result = lp.invoke_with_fallback(["test message"])
+
+        assert result["provider"] == "openrouter"
+        assert result["fallback_used"] is True
+        openrouter_mock.invoke.assert_called_once()
+
     def test_all_providers_fail_raises(self):
         gemini_mock = MagicMock()
         gemini_mock.invoke.side_effect = RuntimeError("timeout 503")
@@ -156,3 +210,4 @@ class TestInvokeWithFallback:
         assert _is_recoverable_error(RuntimeError("timeout")) is True
         assert _is_recoverable_error(RuntimeError("connection refused")) is True
         assert _is_recoverable_error(RuntimeError("503 service unavailable")) is True
+        assert _is_recoverable_error(RuntimeError("404 NOT_FOUND model is no longer available")) is True

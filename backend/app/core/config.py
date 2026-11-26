@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     # --- CORS ---
     # JSON string as list, e.g. '["http://localhost:5173"]'
-    CORS_ORIGINS: List[str] = ["http://localhost:5173"]
+    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
     UPLOAD_DIR: str = "uploads"
     MAX_UPLOAD_SIZE_MB: int = 20
@@ -60,7 +60,7 @@ class Settings(BaseSettings):
 
     # Google Gemini
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_MODEL: str = "gemini-3.8-flash"
 
     # Groq
     GROQ_API_KEY: str = ""
@@ -68,7 +68,7 @@ class Settings(BaseSettings):
 
     # OpenRouter (OpenAI-compatible endpoint)
     OPENROUTER_API_KEY: str = ""
-    OPENROUTER_MODEL: str = "meta-llama/llama-3.1-8b-instruct:free"
+    OPENROUTER_MODEL: str = "google/gemma-4-31b-it:free"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
     # Generation settings

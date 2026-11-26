@@ -10,7 +10,19 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 # Recoverable HTTP status codes — in par fallback try karte hain.
-RECOVERABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+RECOVERABLE_STATUS_CODES = {404, 429, 500, 502, 503, 504}
+
+
+def _is_model_unavailable_error(exc: Exception) -> bool:
+    """Detect retired or invalid provider models so fallback happens immediately."""
+    message = str(exc).lower()
+    status_code = getattr(exc, "status_code", None) or getattr(exc, "code", None)
+    return (
+        status_code == 404
+        or "not_found" in message
+        or "model not found" in message
+        or "model is no longer available" in message
+    )
 
 
 def _is_recoverable_error(exc: Exception) -> bool:
@@ -22,7 +34,8 @@ def _is_recoverable_error(exc: Exception) -> bool:
         "rate limit", "quota", "too many requests", "unavailable",
         "timeout", "timed out", "connection", "overloaded", "capacity",
         "503", "502", "504", "500", "internal server error",
-        "model not available", "model is currently", "try again",
+        "404", "not_found", "model not found", "model not available",
+        "model is currently", "model is no longer available", "try again",
     ]
     for keyword in recoverable_keywords:
         if keyword in msg:
@@ -152,7 +165,7 @@ def invoke_with_fallback(messages: list) -> dict:
         # Provider client banao — agar configuration missing hai to skip karo.
         try:
             llm = _BUILDERS[provider_name]()
-        except (ValueError, KeyError) as exc:
+        except (ValueError, KeyError, ImportError) as exc:
             logger.warning("Provider %s skipped: %s", provider_name, exc)
             last_error = exc
             continue
@@ -180,6 +193,12 @@ def invoke_with_fallback(messages: list) -> dict:
             except Exception as exc:
                 last_error = exc
                 latency_ms = int((time.monotonic() - provider_start) * 1000)
+                if _is_model_unavailable_error(exc):
+                    logger.warning(
+                        "Provider %s model is unavailable; trying the next provider.",
+                        provider_name,
+                    )
+                    break
                 if _is_recoverable_error(exc):
                     if attempt < settings.LLM_MAX_RETRIES:
                         logger.warning(

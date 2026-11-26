@@ -22,6 +22,15 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 ** index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`
 }
 
+function getErrorMessage(error, fallback) {
+  const detail = error.response?.data?.detail
+  if (typeof detail === 'string') return detail
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item.msg || 'Invalid request').join(' ')
+  }
+  return fallback
+}
+
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState([])
   const [stats, setStats] = useState(null)
@@ -36,6 +45,8 @@ export default function DocumentsPage() {
   const [selectedFiles, setSelectedFiles] = useState([])
   const [uploading, setUploading] = useState(false)
   const [uploadResults, setUploadResults] = useState([])
+  const [uploadStage, setUploadStage] = useState('')
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [details, setDetails] = useState(null)
   const pollingRef = useRef(false)
 
@@ -92,22 +103,60 @@ export default function DocumentsPage() {
   async function uploadFiles() {
     if (!selectedFiles.length) return
     setUploading(true)
+    setUploadProgress(0)
+    setUploadStage('Uploading PDF')
     const results = []
-    for (const file of selectedFiles) {
+    const uploadedDocumentIds = []
+    for (const [index, file] of selectedFiles.entries()) {
       try {
         const response = await documentService.uploadDocument(file)
+        uploadedDocumentIds.push(response.data.document.id)
+        setUploadStage('Uploading and saving PDF')
+        setUploadProgress(Math.round(((index + 0.35) / selectedFiles.length) * 100))
         results.push({ name: file.name, success: true, message: response.data.document.status })
       } catch (err) {
         results.push({
           name: file.name,
           success: false,
-          message: err.response?.data?.detail || 'Upload failed.',
+          message: getErrorMessage(err, 'Upload failed.'),
         })
       }
+      setUploadProgress(Math.round(((index + 1) / selectedFiles.length) * 100))
       setUploadResults([...results])
     }
-    setUploading(false)
+    if (uploadedDocumentIds.length > 0) {
+      setUploadStage('Extracting text and creating chunks')
+      setUploadProgress(48)
+      for (let attempt = 0; attempt < 180; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        try {
+          const response = await documentService.getDocuments({ page: 1, page_size: 100 })
+          const uploaded = response.data.items.filter((item) => uploadedDocumentIds.includes(item.id))
+          if (uploaded.some((item) => item.status === 'failed')) {
+            setUploadStage('Document processing failed')
+            setUploadResults((current) => current.map((result) => ({ ...result, success: false })))
+            break
+          }
+          if (uploaded.length === uploadedDocumentIds.length && uploaded.every((item) => item.status === 'ready')) {
+            setUploadStage('Generating embeddings and indexing in vector database')
+            setUploadProgress(92)
+            await new Promise((resolve) => setTimeout(resolve, 400))
+            setUploadProgress(100)
+            setUploadStage('Knowledge base ready')
+            await load()
+            break
+          }
+          setUploadProgress((current) => Math.min(88, current + 2))
+          setUploadStage(uploaded.some((item) => item.status === 'processing')
+            ? 'Generating embeddings and indexing in vector database'
+            : 'Extracting text and creating chunks')
+        } catch {
+          // Continue polling; the existing load API handles recoverable network errors.
+        }
+      }
+    }
     await load()
+    setUploading(false)
   }
 
   async function downloadDocument(document) {
@@ -140,19 +189,19 @@ export default function DocumentsPage() {
       setDetails(null)
       await load()
     } catch (err) {
-      setError(err.response?.data?.detail || 'Document deletion failed.')
+      setError(getErrorMessage(err, 'Document deletion failed.'))
     }
+  }
 
-    async function updateVisibility(document) {
-      const publish = !document.is_publicly_searchable
-      if (publish && !window.confirm('Publish this document to the website chatbot? Its information may be disclosed to public website visitors.')) return
-      try {
-        await documentService.updateVisibility(document.id, publish)
-        await load()
-        setDetails((current) => current ? { ...current, is_publicly_searchable: publish } : current)
-      } catch (err) {
-        setError(err.response?.data?.detail || 'Document visibility could not be updated.')
-      }
+  async function updateVisibility(document) {
+    const publish = !document.is_publicly_searchable
+    if (publish && !window.confirm('Publish this document to the website chatbot? Its information may be disclosed to public website visitors.')) return
+    try {
+      await documentService.updateVisibility(document.id, publish)
+      await load()
+      setDetails((current) => current ? { ...current, is_publicly_searchable: publish } : current)
+    } catch (err) {
+      setError(getErrorMessage(err, 'Document visibility could not be updated.'))
     }
   }
 
@@ -336,6 +385,49 @@ export default function DocumentsPage() {
                       <span className="text-secondary-text">{formatBytes(file.size)}</span>
                     </div>
                   ))}
+                </div>
+              )}
+              {uploading && (
+                <div className="mt-4 overflow-hidden rounded-xl border border-accent/20 bg-gradient-to-br from-accent/5 via-white to-blue-50 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-11 w-11 shrink-0">
+                      <div className="absolute inset-0 rounded-full border-4 border-accent/15"></div>
+                      <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-accent"></div>
+                      <div className="absolute inset-2 rounded-full bg-accent/10"></div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-primary-text">{uploadStage}</p>
+                      <p className="mt-0.5 text-xs text-secondary-text">Please keep this window open while ROBIN prepares the knowledge base.</p>
+                    </div>
+                    <span className="text-sm font-bold text-accent">{uploadProgress}%</span>
+                  </div>
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-accent/10">
+                    <div
+                      className="h-full rounded-full bg-accent transition-all duration-500"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
+                    {[
+                      ['1', 'Upload'],
+                      ['2', 'Chunk'],
+                      ['3', 'Vector DB'],
+                    ].map(([number, label], index) => {
+                      const activeStep = uploadProgress < 55 ? 0 : uploadProgress < 100 ? 1 : 2
+                      return (
+                        <div
+                          key={label}
+                          className={`rounded-lg px-2 py-2 text-center font-medium ${
+                            index <= activeStep
+                              ? 'bg-accent text-white'
+                              : 'bg-white text-secondary-text'
+                          }`}
+                        >
+                          {number}. {label}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
               {uploadResults.length > 0 && (

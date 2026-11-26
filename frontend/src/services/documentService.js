@@ -9,6 +9,10 @@ export const documentService = {
     return api.post('/documents/upload', formData, {
       timeout: 60000,
       onUploadProgress,
+      headers: {
+        // Let the browser add the multipart boundary; shared API defaults use JSON.
+        'Content-Type': undefined,
+      },
     })
   },
   getDocuments(params) {
