@@ -149,7 +149,7 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
             detail="Invalid email or password.",
         )
 
-    _set_auth_cookies(response, user.id)
+    csrf_token = _set_auth_cookies(response, user.id)
 
     return LoginResponse(
         message="Login successful",
@@ -164,6 +164,7 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
             name=company.name,
             slug=company.slug,
         ),
+        csrf_token=csrf_token,
     )
 
 
@@ -173,14 +174,19 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
 
 @router.get("/me", response_model=MeResponse)
 def get_me(
+    response: Response,
     current_user: User = Depends(get_current_user),
     current_company: Company = Depends(get_current_company),
 ):
-    """Return the authenticated user and their company.
+    """Return the authenticated user and their company, with a fresh CSRF token.
 
     Frontend application start par ye endpoint call karta hai
     taaki page refresh ke baad bhi session restore ho sake.
+    Cross-origin deployments mein document.cookie se CSRF token read nahi
+    hota, isliye token response body mein bhi return karte hain.
     """
+    csrf_token = _set_auth_cookies(response, current_user.id)
+
     return MeResponse(
         user=RegisteredUserInfo(
             id=current_user.id,
@@ -193,6 +199,7 @@ def get_me(
             name=current_company.name,
             slug=current_company.slug,
         ),
+        csrf_token=csrf_token,
     )
 
 
@@ -204,6 +211,7 @@ def get_me(
 def update_profile(
     data: UserUpdateRequest,
     request: Request,
+    response: Response,
     _csrf: None = Depends(verify_csrf_token),
     current_user: User = Depends(get_current_user),
     current_company: Company = Depends(get_current_company),
@@ -213,6 +221,8 @@ def update_profile(
     current_user.full_name = data.full_name
     db.commit()
     db.refresh(current_user)
+
+    csrf_token = _set_auth_cookies(response, current_user.id)
 
     return MeResponse(
         user=RegisteredUserInfo(
@@ -226,6 +236,7 @@ def update_profile(
             name=current_company.name,
             slug=current_company.slug,
         ),
+        csrf_token=csrf_token,
     )
 
 

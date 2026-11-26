@@ -1,6 +1,6 @@
 // Handles authentication API calls — register, login, logout, and session restore.
 
-import api from './api.js'
+import api, { setCsrfToken } from './api.js'
 
 export const authService = {
   async register(data) {
@@ -19,7 +19,8 @@ export const authService = {
   },
 
   // Session restore — app start par call hota hai.
-  // Agar valid cookie hai to user aur company info milti hai.
+  // /auth/me now returns csrf_token in the body so the in-memory token
+  // store is repopulated after every page refresh.
   async getMe() {
     const response = await api.get('/auth/me')
     return response.data
@@ -27,6 +28,10 @@ export const authService = {
 
   async updateProfile(data) {
     const response = await api.patch('/auth/me', data)
+    // PATCH /auth/me re-issues a fresh CSRF token — keep the store current.
+    if (response.data?.csrf_token) {
+      setCsrfToken(response.data.csrf_token)
+    }
     return response.data
   },
 }

@@ -95,6 +95,47 @@ class TestLogin:
         # Without a DB configured, this returns 500; with a mock-empty DB it returns 401
         assert response.status_code in (401, 500)
 
+    def test_successful_login_includes_csrf_token_in_body(self):
+        """
+        Verifies that a successful login response includes csrf_token in the
+        JSON body — required because cross-origin JS cannot read Set-Cookie
+        headers when frontend and backend are on different domains.
+        """
+        company = _make_company()
+        user = _make_user(company.id)
+
+        from app.api.dependencies import get_current_user, get_current_company
+
+        def override_user():
+            return user
+
+        def override_company():
+            return company
+
+        # Patch authenticate_user at the route import site, not the service module
+        with patch("app.api.routes.auth.authenticate_user", return_value=(user, company)):
+            app.dependency_overrides[get_current_user] = override_user
+            app.dependency_overrides[get_current_company] = override_company
+            with TestClient(app) as c:
+                response = c.post("/api/v1/auth/login", json={
+                    "email": "test@example.com",
+                    "password": "TestPassword123!",
+                })
+            app.dependency_overrides.pop(get_current_user, None)
+            app.dependency_overrides.pop(get_current_company, None)
+
+        assert response.status_code == 200
+        body = response.json()
+        # csrf_token must be present in the response body (not just in Set-Cookie)
+        assert "csrf_token" in body, "csrf_token must be in the login response body"
+        assert isinstance(body["csrf_token"], str)
+        assert len(body["csrf_token"]) > 0
+        # Both cookies must be set
+        assert "robin_access_token" in response.cookies
+        assert "robin_csrf_token" in response.cookies
+        # Cookie value must match the body value (double-submit pattern)
+        assert response.cookies["robin_csrf_token"] == body["csrf_token"]
+
 
 # ---------------------------------------------------------------------------
 # Protected endpoint — unauthenticated access
@@ -113,3 +154,85 @@ class TestProtectedEndpoints:
         response = client.patch("/api/v1/company/me", json={"name": "New Name"})
         # Will hit auth check before CSRF check
         assert response.status_code in (401, 403)
+
+
+# ---------------------------------------------------------------------------
+# CSRF token delivery tests
+# ---------------------------------------------------------------------------
+
+class TestCsrfTokenDelivery:
+    def test_me_endpoint_includes_csrf_token_in_body(self):
+        """
+        GET /auth/me must return csrf_token in the JSON body so that the
+        frontend can repopulate the in-memory CSRF store after a page refresh.
+        """
+        company = _make_company()
+        user = _make_user(company.id)
+
+        mock_db = MagicMock()
+        mock_db.query.return_value.filter.return_value.first.return_value = user
+
+        from app.api.dependencies import get_current_user, get_current_company
+        from app.core.security import create_access_token
+
+        token = create_access_token(user.id)
+
+        def override_db():
+            yield mock_db
+
+        def override_user():
+            return user
+
+        def override_company():
+            return company
+
+        app.dependency_overrides[get_db] = override_db
+        app.dependency_overrides[get_current_user] = override_user
+        app.dependency_overrides[get_current_company] = override_company
+
+        with TestClient(app) as c:
+            # Set auth cookie so the request reaches the endpoint
+            c.cookies.set("robin_access_token", token)
+            response = c.get("/api/v1/auth/me")
+
+        app.dependency_overrides.pop(get_db, None)
+        app.dependency_overrides.pop(get_current_user, None)
+        app.dependency_overrides.pop(get_current_company, None)
+
+        assert response.status_code == 200
+        body = response.json()
+        assert "csrf_token" in body, "csrf_token must be in the /auth/me response body"
+        assert isinstance(body["csrf_token"], str)
+        assert len(body["csrf_token"]) > 0
+
+    def test_post_without_csrf_header_returns_403(self, client):
+        """
+        Any state-changing request without X-CSRF-Token header must return 403
+        once auth passes. Here we test a request that hits CSRF validation.
+        """
+        response = client.post("/api/v1/auth/logout")
+        # No auth cookie → 403 from CSRF (cookie missing) or 401 from auth
+        assert response.status_code in (401, 403)
+
+    def test_csrf_cookie_body_values_match_on_login(self):
+        """
+        The robin_csrf_token cookie value and the csrf_token body field must
+        be identical — this is the double-submit cookie contract.
+        """
+        company = _make_company()
+        user = _make_user(company.id)
+
+        with patch("app.api.routes.auth.authenticate_user", return_value=(user, company)):
+            with TestClient(app) as c:
+                response = c.post("/api/v1/auth/login", json={
+                    "email": "test@example.com",
+                    "password": "TestPassword123!",
+                })
+
+        assert response.status_code == 200
+        body = response.json()
+        cookie_value = response.cookies.get("robin_csrf_token")
+        assert cookie_value is not None, "robin_csrf_token cookie must be set"
+        assert body.get("csrf_token") == cookie_value, (
+            "csrf_token in body must equal robin_csrf_token cookie value"
+        )
