@@ -16,7 +16,12 @@ from app.models.user import User
 from app.rag.ingestion import process_document
 from app.rag.pdf_loader import extract_pdf_pages
 from app.rag.vector_store import delete_document_vectors
-from app.schemas.document import DocumentListResponse, DocumentResponse, DocumentUploadResponse, KnowledgeBaseStats
+from app.schemas.document import (
+    DocumentListResponse,
+    DocumentResponse,
+    DocumentUploadResponse,
+    DocumentVisibilityUpdate,
+)
 from app.services.storage_service import delete_document_file, save_upload
 from app.db.session import get_db
 
@@ -135,6 +140,28 @@ def document_details(
     document = db.query(Document).filter(Document.id == document_id, Document.company_id == current_company.id).first()
     if document is None:
         raise HTTPException(404, "Document not found.")
+    return _document_response(document)
+
+
+@router.patch("/{document_id}/visibility", response_model=DocumentResponse)
+def update_document_visibility(
+    document_id: uuid.UUID,
+    data: DocumentVisibilityUpdate,
+    _csrf: None = Depends(verify_csrf_token),
+    current_company: Company = Depends(get_current_company),
+    db: Session = Depends(get_db),
+):
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.company_id == current_company.id,
+    ).first()
+    if document is None:
+        raise HTTPException(404, "Document not found.")
+    if data.is_publicly_searchable and document.status != "ready":
+        raise HTTPException(409, "Only ready documents can be enabled for the website chatbot.")
+    document.is_publicly_searchable = data.is_publicly_searchable
+    db.commit()
+    db.refresh(document)
     return _document_response(document)
 
 

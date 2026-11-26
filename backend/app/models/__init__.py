@@ -3,3 +3,4 @@
 from app.models.company import Company  # noqa: F401
 from app.models.user import User        # noqa: F401
 from app.models.document import Document
+from app.models.chatbot import Chatbot

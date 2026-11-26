@@ -10,6 +10,7 @@ from app.rag.vector_store import collection_name, get_vector_store
 
 
 def search_company_knowledge(db, company_id: uuid.UUID, query: str, top_k: int = 5,
+                             public_only: bool = False,
                              document_id: uuid.UUID | None = None) -> list[dict]:
     query = query.strip()
     if not query:
@@ -17,12 +18,15 @@ def search_company_knowledge(db, company_id: uuid.UUID, query: str, top_k: int =
     if len(query) > settings.MAX_QUERY_LENGTH:
         raise ValueError("Search query is too long.")
 
+    ready_query = db.query(Document.id).filter(
+        Document.company_id == company_id,
+        Document.status == "ready",
+    )
+    if public_only:
+        ready_query = ready_query.filter(Document.is_publicly_searchable.is_(True))
     ready_ids = {
         str(row.id)
-        for row in db.query(Document.id).filter(
-            Document.company_id == company_id,
-            Document.status == "ready",
-        ).all()
+        for row in ready_query.all()
     }
     if document_id is not None:
         if str(document_id) not in ready_ids:

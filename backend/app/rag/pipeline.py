@@ -35,6 +35,7 @@ def run_rag_pipeline(
     question: str,
     history: Optional[list[ConversationMessage]] = None,
     request_id: Optional[str] = None,
+    public_only: bool = False,
 ) -> dict:
     """Main RAG pipeline — retrieval se answer generation tak ka pura flow.
 
@@ -65,6 +66,7 @@ def run_rag_pipeline(
             company_id,
             retrieval_query,
             top_k=settings.RAG_RETRIEVAL_TOP_K,
+            public_only=public_only,
         )
     except ValueError as exc:
         return _error_response(request_id, str(exc), "invalid_input")

@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -45,6 +45,7 @@ class Document(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_publicly_searchable: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
 
     company: Mapped["Company"] = relationship("Company", back_populates="documents")
     uploaded_by_user: Mapped["User"] = relationship("User", back_populates="uploaded_documents")

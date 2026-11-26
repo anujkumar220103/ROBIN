@@ -93,6 +93,23 @@ class Settings(BaseSettings):
     CHAT_RATE_LIMIT_PER_MINUTE: int = 10
     CHAT_MAX_CONCURRENT_REQUESTS: int = 2
 
+    # Public widget sessions
+    WIDGET_SESSION_SECRET: str = ""
+    WIDGET_SESSION_TTL_MINUTES: int = 30
+    WIDGET_SESSION_ISSUER: str = "robin-widget"
+    WIDGET_SESSION_AUDIENCE: str = "robin-public-chat"
+    PUBLIC_WIDGET_URL: str = "http://localhost:5173/widget"
+
+    # Public API limits
+    PUBLIC_SESSION_RATE_LIMIT_PER_MINUTE: int = 10
+    PUBLIC_CHAT_RATE_LIMIT_PER_MINUTE: int = 5
+    PUBLIC_CHAT_IP_RATE_LIMIT_PER_MINUTE: int = 20
+    PUBLIC_CHAT_COMPANY_RATE_LIMIT_PER_MINUTE: int = 30
+    PUBLIC_CHAT_COMPANY_DAILY_LIMIT: int = 200
+    PUBLIC_CHAT_GLOBAL_DAILY_LIMIT: int = 1000
+    PUBLIC_CHAT_MAX_CONCURRENT_PER_COMPANY: int = 2
+    PUBLIC_CHAT_MAX_CONCURRENT_GLOBAL: int = 5
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

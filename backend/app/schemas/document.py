@@ -17,6 +17,7 @@ class DocumentResponse(BaseModel):
     error_message: str | None = None
     created_at: datetime
     processed_at: datetime | None = None
+    is_publicly_searchable: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -42,3 +43,7 @@ class KnowledgeBaseStats(BaseModel):
     total_pages: int
     total_chunks: int
     total_storage_bytes: int
+
+
+class DocumentVisibilityUpdate(BaseModel):
+    is_publicly_searchable: bool

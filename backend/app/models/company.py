@@ -43,6 +43,9 @@ class Company(Base):
     documents: Mapped[list["Document"]] = relationship(
         "Document", back_populates="company", lazy="select"
     )
+    chatbot: Mapped["Chatbot"] = relationship(
+        "Chatbot", back_populates="company", uselist=False, lazy="select"
+    )
 
     def __repr__(self) -> str:
         return f"<Company id={self.id} slug={self.slug!r}>"
