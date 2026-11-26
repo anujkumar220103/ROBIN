@@ -56,13 +56,14 @@ def activate_chatbot(
     chatbot = get_or_create_chatbot(db, current_company)
     if not chatbot.allowed_domains:
         raise HTTPException(400, "Add at least one allowed website origin.")
-    ready_public = db.query(func.count(Document.id)).filter(
+    # Sirf ready documents check karte hain — is_publicly_searchable ka activation se
+    # koi connection nahi, wo ek alag per-document setting hai.
+    ready_count = db.query(func.count(Document.id)).filter(
         Document.company_id == current_company.id,
         Document.status == "ready",
-        Document.is_publicly_searchable.is_(True),
     ).scalar() or 0
-    if ready_public == 0:
-        raise HTTPException(400, "Publish at least one ready document before activation.")
+    if ready_count == 0:
+        raise HTTPException(400, "Process at least one document before activation.")
     chatbot.is_active = True
     db.commit()
     db.refresh(chatbot)

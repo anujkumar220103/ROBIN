@@ -178,7 +178,15 @@ def invoke_with_fallback(messages: list) -> dict:
             try:
                 response = llm.invoke(messages)
                 latency_ms = int((time.monotonic() - provider_start) * 1000)
-                content = response.content if hasattr(response, "content") else str(response)
+                raw_content = response.content if hasattr(response, "content") else str(response)
+                # Gemini kabhi kabhi list of parts return karta hai — string mein convert karo.
+                if isinstance(raw_content, list):
+                    content = " ".join(
+                        part.get("text", "") if isinstance(part, dict) else str(part)
+                        for part in raw_content
+                    ).strip()
+                else:
+                    content = str(raw_content) if raw_content is not None else ""
                 logger.info(
                     "Provider %s (%s) succeeded in %dms (attempt %d, fallback=%s).",
                     provider_name, model_name, latency_ms, attempt + 1, fallback_used,
