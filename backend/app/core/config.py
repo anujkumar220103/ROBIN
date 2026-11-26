@@ -48,6 +48,15 @@ class Settings(BaseSettings):
     CHUNK_SIZE_TOKENS: int = 200
     CHUNK_OVERLAP_TOKENS: int = 30
     CHROMA_PERSIST_DIR: str = "chroma_data"
+    CHROMA_API_KEY: str = ""
+    CHROMA_TENANT: str = ""
+    CHROMA_DATABASE: str = ""
+
+    # --- Cloudinary PDF storage ---
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
+    CLOUDINARY_FOLDER: str = "robin-documents"
     DEFAULT_TOP_K: int = 5
     MAX_TOP_K: int = 20
     MAX_CONCURRENT_INGESTIONS: int = 1
@@ -135,6 +144,10 @@ class Settings(BaseSettings):
         if self.APP_ENV == "production" and len(self.JWT_SECRET_KEY) < 32:
             raise ValueError(
                 "JWT_SECRET_KEY must be at least 32 characters in production."
+            )
+        if self.APP_ENV == "production" and len(self.WIDGET_SESSION_SECRET) < 32:
+            raise ValueError(
+                "WIDGET_SESSION_SECRET must be at least 32 characters in production."
             )
         if self.MAX_UPLOAD_SIZE_MB <= 0 or self.MAX_PDF_PAGES <= 0:
             raise ValueError("Upload size and PDF page limits must be positive.")

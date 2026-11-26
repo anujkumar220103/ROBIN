@@ -12,6 +12,7 @@ from app.rag.pdf_loader import extract_pdf_pages
 from app.rag.text_cleaner import clean_text
 from app.rag.text_splitter import split_pages
 from app.rag.vector_store import delete_document_vectors, upsert_chunks
+from app.services.storage_service import materialize_document
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,12 @@ def process_document(document_id: uuid.UUID) -> None:
         document.error_message = None
         db.commit()
 
-        pages, page_count = extract_pdf_pages(document.storage_path, settings.MAX_PDF_PAGES)
+        pdf_path = materialize_document(document.storage_path)
+        try:
+            pages, page_count = extract_pdf_pages(str(pdf_path), settings.MAX_PDF_PAGES)
+        finally:
+            if str(pdf_path).startswith(str(settings.upload_directory / ".downloads")):
+                pdf_path.unlink(missing_ok=True)
         cleaned_pages = []
         for page in pages:
             cleaned = clean_text(page["text"])

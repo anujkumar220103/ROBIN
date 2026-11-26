@@ -1,7 +1,6 @@
 # Provides authenticated tenant document upload and management APIs.
 
 import uuid
-from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, File, status
 from fastapi.responses import FileResponse
@@ -22,7 +21,12 @@ from app.schemas.document import (
     DocumentUploadResponse,
     DocumentVisibilityUpdate,
 )
-from app.services.storage_service import delete_document_file, save_upload
+from app.services.storage_service import (
+    delete_document_file,
+    is_cloudinary_reference,
+    materialize_document,
+    save_upload,
+)
 from app.db.session import get_db
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -60,7 +64,12 @@ async def upload_document(
     try:
         storage_path, file_hash, file_size = await save_upload(current_company.id, document_id, file)
         try:
-            _, page_count = extract_pdf_pages(str(storage_path), settings.MAX_PDF_PAGES)
+            pdf_path = materialize_document(storage_path)
+            try:
+                _, page_count = extract_pdf_pages(str(pdf_path), settings.MAX_PDF_PAGES)
+            finally:
+                if is_cloudinary_reference(storage_path):
+                    pdf_path.unlink(missing_ok=True)
         except ValueError as exc:
             raise HTTPException(400, str(exc))
 
@@ -168,17 +177,20 @@ def update_document_visibility(
 @router.get("/{document_id}/download")
 def download_document(
     document_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
     current_company: Company = Depends(get_current_company),
     db: Session = Depends(get_db),
 ):
     document = db.query(Document).filter(Document.id == document_id, Document.company_id == current_company.id).first()
     if document is None:
         raise HTTPException(404, "Document not found.")
-    path = Path(document.storage_path)
+    path = materialize_document(document.storage_path)
     root = settings.upload_directory.resolve()
     if root not in path.resolve().parents or not path.is_file():
         raise HTTPException(404, "Stored PDF was not found.")
     safe_name = document.original_filename.replace('"', "_").replace("\r", "_").replace("\n", "_")
+    if is_cloudinary_reference(document.storage_path):
+        background_tasks.add_task(path.unlink, missing_ok=True)
     return FileResponse(path, media_type="application/pdf", filename=safe_name)
 
 
@@ -245,10 +257,12 @@ def retry_document(
         raise HTTPException(404, "Document not found.")
     if document.status != "failed":
         raise HTTPException(409, "Only failed documents can be retried.")
-    path = Path(document.storage_path)
-    root = settings.upload_directory.resolve()
-    if root not in path.resolve().parents or not path.is_file():
+    try:
+        path = materialize_document(document.storage_path)
+    except (FileNotFoundError, ValueError):
         raise HTTPException(409, "The original PDF is missing and cannot be retried.")
+    if is_cloudinary_reference(document.storage_path):
+        path.unlink(missing_ok=True)
 
     document.status = "pending"
     document.error_message = None
