@@ -82,6 +82,7 @@ class LoginResponse(BaseModel):
     message: str
     user: RegisteredUserInfo
     company: RegisteredCompanyInfo
+    csrf_token: str  # Returned in body so cross-origin JS can read it (cookie unreadable across origins)
 
 
 # ---------------------------------------------------------------------------
@@ -91,6 +92,7 @@ class LoginResponse(BaseModel):
 class MeResponse(BaseModel):
     user: RegisteredUserInfo
     company: RegisteredCompanyInfo
+    csrf_token: str  # Returned in body so session restore after page refresh also gets the token
 
 
 # ---------------------------------------------------------------------------
