@@ -16,5 +16,7 @@ chroma_data/
 model_cache/
 .cache/
 *.egg-info/
+*.sqlite
+*.sqlite3
 .DS_Store
 Thumbs.db
