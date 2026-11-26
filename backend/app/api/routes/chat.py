@@ -119,7 +119,7 @@ def ask_question(
     pipeline_status = result.get("status", "error")
     if pipeline_status == "invalid_input":
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=result["answer"])
-    if pipeline_status == "retrieval_error":
+    if pipeline_status in {"retrieval_error", "provider_error"}:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=result["answer"])
 
     sources = []
