@@ -14,11 +14,18 @@ def collection_name(company_id: uuid.UUID) -> str:
 
 class VectorStore:
     def __init__(self):
-        settings.chroma_directory.mkdir(parents=True, exist_ok=True)
-        self._client = chromadb.PersistentClient(
-            path=str(settings.chroma_directory),
-            settings=ChromaSettings(anonymized_telemetry=False),
-        )
+        if settings.CHROMA_API_KEY and settings.CHROMA_TENANT and settings.CHROMA_DATABASE:
+            self._client = chromadb.CloudClient(
+                tenant=settings.CHROMA_TENANT,
+                database=settings.CHROMA_DATABASE,
+                api_key=settings.CHROMA_API_KEY,
+            )
+        else:
+            settings.chroma_directory.mkdir(parents=True, exist_ok=True)
+            self._client = chromadb.PersistentClient(
+                path=str(settings.chroma_directory),
+                settings=ChromaSettings(anonymized_telemetry=False),
+            )
 
 
 _client_lock = threading.Lock()

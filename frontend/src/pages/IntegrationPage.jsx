@@ -26,7 +26,8 @@ export default function IntegrationPage() {
   useEffect(() => { load() }, [])
 
   async function activate() {
-    if (!window.confirm('Activate this chatbot for public website visitors? Published document information may be processed by configured external AI providers.')) return
+    if (!window.confirm('Activate this chatbot for public website visitors? Document information may be processed by configured external AI providers.')) return
+    setError('')
     try {
       await chatbotService.activateChatbot({
         acknowledge_public_documents: true,
@@ -34,7 +35,8 @@ export default function IntegrationPage() {
       })
       await load()
     } catch (err) {
-      setError(err.response?.data?.detail || 'Chatbot could not be activated.')
+      const detail = err.response?.data?.detail || 'Chatbot could not be activated.'
+      setError(detail)
     }
   }
 

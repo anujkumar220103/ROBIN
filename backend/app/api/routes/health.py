@@ -33,3 +33,25 @@ def database_health_check():
         status_code=503,
         content={"status": "unhealthy", "database": "disconnected"},
     )
+
+
+@router.get("/ready")
+def readiness_check():
+    """Report whether required runtime dependencies are available."""
+    database_ready = check_database_connection()
+    vector_ready = True
+    try:
+        from app.rag.vector_store import get_vector_store
+        get_vector_store()
+    except Exception:
+        vector_ready = False
+
+    ready = database_ready and vector_ready
+    return JSONResponse(
+        status_code=200 if ready else 503,
+        content={
+            "status": "ready" if ready else "unavailable",
+            "database": "ready" if database_ready else "unavailable",
+            "vector_store": "ready" if vector_ready else "unavailable",
+        },
+    )
