@@ -240,40 +240,71 @@ function HowItWorks() {
 
 function Footer() {
   return (
-    <footer className="border-t border-border bg-surface py-10">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded-md bg-accent flex items-center justify-center">
-                <Bot size={13} className="text-white" />
+    <footer className="border-t border-border bg-background">
+      {/* Main footer content */}
+      <div className="max-w-6xl mx-auto px-4 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+          {/* Brand column */}
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
+                <Bot size={15} className="text-white" />
               </div>
-              <span className="text-sm font-bold text-primary-text">ROBIN AI</span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-sm font-bold text-primary-text">ROBIN AI</span>
+                <span className="text-[9px] text-secondary-text font-medium">Retrieval-Oriented Bot for Intelligent Navigation</span>
+              </div>
             </div>
-            <p className="text-xs text-secondary-text max-w-xs">
-              Retrieval-Oriented Bot for Intelligent Navigation.<br />
-              Multi-tenant AI knowledge assistant platform.
+            <p className="text-xs text-secondary-text leading-relaxed max-w-xs mt-3">
+              Turn your company documents into an intelligent knowledge assistant.
+              Accurate, source-grounded answers for your customers and team — deployed in minutes.
             </p>
+            <div className="flex items-center gap-2 mt-5">
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+              <span className="text-xs text-secondary-text">All systems operational</span>
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 text-xs text-secondary-text">
-            <div>
-              <p className="font-medium text-primary-text mb-2">Product</p>
-              <div className="space-y-1.5">
-                <a href="#features" className="block hover:text-primary-text transition-colors">Features</a>
-                <a href="#how-it-works" className="block hover:text-primary-text transition-colors">How It Works</a>
-              </div>
-            </div>
-            <div>
-              <p className="font-medium text-primary-text mb-2">Account</p>
-              <div className="space-y-1.5">
-                <Link to="/login" className="block hover:text-primary-text transition-colors">Sign In</Link>
-                <Link to="/register" className="block hover:text-primary-text transition-colors">Get Started</Link>
-              </div>
-            </div>
+
+          {/* Product links */}
+          <div>
+            <p className="text-xs font-semibold text-primary-text uppercase tracking-wider mb-4">Product</p>
+            <ul className="space-y-2.5">
+              <li><a href="#features" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Features</a></li>
+              <li><a href="#how-it-works" className="text-xs text-secondary-text hover:text-primary-text transition-colors">How It Works</a></li>
+              <li><a href="#features" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Knowledge Base</a></li>
+              <li><a href="#features" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Website Integration</a></li>
+            </ul>
+          </div>
+
+          {/* Account links */}
+          <div>
+            <p className="text-xs font-semibold text-primary-text uppercase tracking-wider mb-4">Account</p>
+            <ul className="space-y-2.5">
+              <li><Link to="/login" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Sign In</Link></li>
+              <li><Link to="/register" className="text-xs text-secondary-text hover:text-primary-text transition-colors">Create Account</Link></li>
+            </ul>
+
+            <p className="text-xs font-semibold text-primary-text uppercase tracking-wider mb-4 mt-7">Technology</p>
+            <ul className="space-y-2.5">
+              <li><span className="text-xs text-secondary-text">RAG Architecture</span></li>
+              <li><span className="text-xs text-secondary-text">Vector Search</span></li>
+              <li><span className="text-xs text-secondary-text">Multi-Tenant Isolation</span></li>
+            </ul>
           </div>
         </div>
-        <div className="border-t border-border mt-8 pt-6">
+      </div>
+
+      {/* Bottom bar */}
+      <div className="border-t border-border">
+        <div className="max-w-6xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-secondary-text">© 2026 ROBIN AI. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-secondary-text">Built with RAG + Vector Search</span>
+            <span className="text-secondary-text/30 text-xs">|</span>
+            <Link to="/register" className="text-xs text-accent font-medium hover:underline">
+              Get started free →
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
