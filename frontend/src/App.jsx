@@ -16,6 +16,7 @@ import ChatbotSettingsPage from './pages/ChatbotSettingsPage.jsx'
 import IntegrationPage from './pages/IntegrationPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
+import WidgetPage from './pages/WidgetPage.jsx'
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             path="/register"
             element={<PublicRoute><RegisterPage /></PublicRoute>}
           />
+          <Route path="/widget/:publicId" element={<WidgetPage />} />
 
           {/* Protected dashboard routes */}
           <Route

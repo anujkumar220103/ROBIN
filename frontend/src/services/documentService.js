@@ -29,4 +29,7 @@ export const documentService = {
   getKnowledgeBaseStats() {
     return api.get('/knowledge-base/stats')
   },
+  updateVisibility(documentId, isPubliclySearchable) {
+    return api.patch(`/documents/${documentId}/visibility`, { is_publicly_searchable: isPubliclySearchable })
+  },
 }

@@ -142,6 +142,18 @@ export default function DocumentsPage() {
     } catch (err) {
       setError(err.response?.data?.detail || 'Document deletion failed.')
     }
+
+    async function updateVisibility(document) {
+      const publish = !document.is_publicly_searchable
+      if (publish && !window.confirm('Publish this document to the website chatbot? Its information may be disclosed to public website visitors.')) return
+      try {
+        await documentService.updateVisibility(document.id, publish)
+        await load()
+        setDetails((current) => current ? { ...current, is_publicly_searchable: publish } : current)
+      } catch (err) {
+        setError(err.response?.data?.detail || 'Document visibility could not be updated.')
+      }
+    }
   }
 
   const pages = Math.max(1, Math.ceil(total / pageSize))
@@ -225,6 +237,7 @@ export default function DocumentsPage() {
                   <th className="px-3 py-3 font-medium">Pages</th>
                   <th className="px-3 py-3 font-medium">Chunks</th>
                   <th className="px-3 py-3 font-medium">Status</th>
+                  <th className="px-3 py-3 font-medium">Website chatbot</th>
                   <th className="px-3 py-3 font-medium">Uploaded</th>
                   <th className="px-4 py-3"></th>
                 </tr>
@@ -245,6 +258,16 @@ export default function DocumentsPage() {
                       <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${statusStyles[document.status]}`}>
                         {document.status}
                       </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <button
+                        disabled={document.status !== 'ready'}
+                        onClick={() => updateVisibility(document)}
+                        className={`rounded-full px-2 py-1 text-xs ${document.is_publicly_searchable ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'} disabled:cursor-not-allowed disabled:opacity-50`}
+                        title={document.status !== 'ready' ? 'Only ready documents can be published' : 'Change website chatbot visibility'}
+                      >
+                        {document.is_publicly_searchable ? 'Website' : 'Private'}
+                      </button>
                     </td>
                     <td className="px-3 py-3 text-secondary-text">{new Date(document.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
@@ -348,6 +371,12 @@ export default function DocumentsPage() {
               <p><span className="text-secondary-text">Pages:</span> <span className="ml-2">{details.page_count}</span></p>
               <p><span className="text-secondary-text">Chunks:</span> <span className="ml-2">{details.chunk_count}</span></p>
               <p><span className="text-secondary-text">Model:</span> <span className="ml-2">{details.embedding_model || '-'}</span></p>
+              <p><span className="text-secondary-text">Website chatbot:</span> <span className="ml-2">{details.is_publicly_searchable ? 'Published' : 'Private'}</span></p>
+              {details.is_publicly_searchable && (
+                <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  This document may be used to answer public website visitors. Do not publish confidential or internal-only documents.
+                </p>
+              )}
               {details.error_message && <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{details.error_message}</p>}
             </div>
           </div>
