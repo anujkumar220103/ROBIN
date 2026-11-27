@@ -4,7 +4,7 @@
 import json
 from pathlib import Path
 from typing import List
-from pydantic import field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -42,9 +42,14 @@ class Settings(BaseSettings):
     MAX_PDF_PAGES: int = 200
     MAX_DOCUMENTS_PER_COMPANY: int = 100
     MAX_CHUNKS_PER_DOCUMENT: int = 5000
-    EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
-    EMBEDDING_DEVICE: str = "cpu"
-    EMBEDDING_BATCH_SIZE: int = 32
+    EMBEDDING_PROVIDER: str = "jina"
+    JINA_API_KEY: str = Field(default="", repr=False)
+    EMBEDDING_MODEL: str = "jina-embeddings-v3"
+    EMBEDDING_DIMENSION: int = 1024
+    EMBEDDING_BATCH_SIZE: int = 16
+    EMBEDDING_TIMEOUT_SECONDS: int = 30
+    EMBEDDING_MAX_RETRIES: int = 3
+    EMBEDDING_RETRY_BASE_SECONDS: float = 0.5
     CHUNK_SIZE_TOKENS: int = 200
     CHUNK_OVERLAP_TOKENS: int = 30
     QDRANT_URL: str = ""
@@ -130,6 +135,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
+        hide_input_in_errors=True,
     )
 
     @field_validator("CORS_ORIGINS", mode="before")
@@ -165,8 +171,22 @@ class Settings(BaseSettings):
             raise ValueError("Chunk size and overlap must be valid.")
         if self.CHUNK_OVERLAP_TOKENS >= self.CHUNK_SIZE_TOKENS:
             raise ValueError("Chunk overlap must be smaller than chunk size.")
-        if self.EMBEDDING_BATCH_SIZE <= 0 or self.MAX_TOP_K <= 0:
-            raise ValueError("Embedding batch and top_k limits must be positive.")
+        if self.EMBEDDING_PROVIDER.strip().lower() != "jina":
+            raise ValueError("EMBEDDING_PROVIDER must be 'jina'.")
+        if not self.JINA_API_KEY.strip():
+            raise ValueError("JINA_API_KEY is required when EMBEDDING_PROVIDER=jina.")
+        if self.EMBEDDING_MODEL != "jina-embeddings-v3":
+            raise ValueError("EMBEDDING_MODEL must be 'jina-embeddings-v3'.")
+        if not 1 <= self.EMBEDDING_DIMENSION <= 1024:
+            raise ValueError("EMBEDDING_DIMENSION must be between 1 and 1024 for jina-embeddings-v3.")
+        if self.EMBEDDING_BATCH_SIZE <= 0 or self.EMBEDDING_TIMEOUT_SECONDS <= 0:
+            raise ValueError("Embedding batch size and timeout must be positive.")
+        if self.MAX_CONCURRENT_INGESTIONS <= 0:
+            raise ValueError("Maximum concurrent ingestions must be positive.")
+        if self.EMBEDDING_MAX_RETRIES < 0 or self.EMBEDDING_RETRY_BASE_SECONDS <= 0:
+            raise ValueError("Embedding retries must be non-negative and the retry delay positive.")
+        if self.MAX_TOP_K <= 0:
+            raise ValueError("The maximum retrieval top_k must be positive.")
         return self
 
     @property

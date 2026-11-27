@@ -9,8 +9,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white)](https://python.langchain.com/)
-[![Hugging Face](https://img.shields.io/badge/Hugging_Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/)
-[![Sentence Transformers](https://img.shields.io/badge/Sentence_Transformers-FF6F00)](https://sbert.net/)
+[![Jina AI](https://img.shields.io/badge/Jina_AI-6C4CF1)](https://jina.ai/embeddings/)
 [![Qdrant](https://img.shields.io/badge/Qdrant-DC382D?logo=qdrant&logoColor=white)](https://qdrant.tech/)
 [![Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
 [![Groq](https://img.shields.io/badge/Groq-F55036)](https://groq.com/)
@@ -36,7 +35,7 @@ ROBIN also provides an embeddable public chat widget, an internal playground, do
 
 - **Document-grounded RAG** - PDF ingestion, cleaning, token-aware chunking, semantic retrieval, and source-cited generation.
 - **Multi-provider LLM fallback** - Google Gemini, Groq, and OpenRouter with configurable provider priority and automatic fallback.
-- **Semantic vector search** - Sentence Transformer embeddings stored and retrieved through Qdrant.
+- **Semantic vector search** - Jina AI embeddings stored and retrieved through Qdrant.
 - **Tenant isolation** - Documents and vector results are scoped to the authenticated company.
 - **Private document storage** - Cloudinary authenticated storage for uploaded PDFs.
 - **Secure authentication** - JWT cookies, Argon2id password hashing, and CSRF protection.
@@ -52,9 +51,9 @@ ROBIN is primarily an applied AI/ML system built around modern retrieval and gen
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | Document parsing | PyMuPDF | Extract text and metadata from PDFs |
-| Text processing | LangChain Text Splitters | Clean text and create token-aware overlapping chunks |
-| Embedding model | `sentence-transformers/all-MiniLM-L6-v2` | Convert documents and queries into dense vectors |
-| Embedding runtime | Hugging Face Sentence Transformers | Generate embeddings locally on CPU or GPU |
+| Text processing | LangChain Text Splitters | Clean text and create bounded overlapping chunks |
+| Embedding model | `jina-embeddings-v3` | Generate 1024-dimensional document and query vectors through Jina AI |
+| Embedding runtime | Jina AI Embeddings API | Keep model weights off the application instance |
 | Vector database | Qdrant | Store, search, filter, and isolate tenant vectors |
 | RAG orchestration | Custom Python RAG pipeline | Retrieve context, enforce thresholds, build prompts, and validate responses |
 | LLM provider 1 | Google Gemini | Grounded answer generation |
@@ -70,7 +69,7 @@ PDF
   -> Text Extraction
   -> Text Cleaning
   -> Token-Aware Chunking
-  -> Dense Embedding Generation
+  -> Jina AI Dense Embedding Generation
   -> Tenant-Scoped Vector Indexing
   -> Question Embedding
   -> Semantic Retrieval
@@ -89,7 +88,7 @@ flowchart LR
     API --> DB[(Neon PostgreSQL)]
     API --> PDF[PyMuPDF Document Processing]
     PDF --> CHUNK[LangChain Text Chunking]
-    CHUNK --> EMB[Sentence Transformers]
+    CHUNK --> EMB[Jina AI Embeddings API]
     EMB --> VECTOR[(Qdrant Vector Database)]
     API --> RAG[RAG Retrieval Pipeline]
     VECTOR --> RAG
@@ -115,7 +114,7 @@ flowchart LR
 
 | Layer | Technologies |
 |-------|--------------|
-| AI/ML | LangChain, Hugging Face, Sentence Transformers, Qdrant, Gemini, Groq, OpenRouter |
+| AI/ML | LangChain, Jina AI Embeddings API, Qdrant, Gemini, Groq, OpenRouter |
 | Backend | Python 3.12, FastAPI, Pydantic 2, SQLAlchemy 2, Alembic |
 | Frontend | React 18, Vite 6, React Router 7, Tailwind CSS 3, Axios |
 | Database | Neon PostgreSQL, psycopg 3 |
@@ -192,6 +191,7 @@ Minimum local environment values:
 DATABASE_URL=postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require
 JWT_SECRET_KEY=<generated-jwt-secret>
 WIDGET_SESSION_SECRET=<generated-widget-secret>
+JINA_API_KEY=<Jina AI API key>
 CORS_ORIGINS=["http://localhost:5173"]
 ```
 
@@ -236,6 +236,14 @@ npm run dev
 | `COOKIE_SAMESITE` | Production | Cross-site deployment setting, commonly `none` |
 | `QDRANT_URL` | Production | Qdrant Cloud cluster endpoint |
 | `QDRANT_API_KEY` | Production | Qdrant Cloud API key |
+| `EMBEDDING_PROVIDER` | Yes | Set to `jina` |
+| `JINA_API_KEY` | Yes | Jina AI Embeddings API credential |
+| `EMBEDDING_MODEL` | Yes | `jina-embeddings-v3` |
+| `EMBEDDING_DIMENSION` | Yes | Vector size; defaults to `1024` |
+| `EMBEDDING_BATCH_SIZE` | Yes | Bounded embedding request size; defaults to `16` |
+| `EMBEDDING_TIMEOUT_SECONDS` | No | Request timeout; defaults to `30` |
+| `EMBEDDING_MAX_RETRIES` | No | Bounded retry count; defaults to `3` |
+| `EMBEDDING_RETRY_BASE_SECONDS` | No | Exponential retry delay base; defaults to `0.5` |
 | `CLOUDINARY_*` | Recommended | Private PDF storage credentials |
 | `GEMINI_API_KEY` | Optional | Google Gemini API key |
 | `GROQ_API_KEY` | Optional | Groq API key |
@@ -321,6 +329,13 @@ npm run build
 
 Configure Neon PostgreSQL, Qdrant Cloud, Cloudinary, and at least one LLM provider before production deployment.
 
+Set `EMBEDDING_PROVIDER=jina`, `JINA_API_KEY`, `EMBEDDING_MODEL=jina-embeddings-v3`,
+`EMBEDDING_DIMENSION=1024`, and `EMBEDDING_BATCH_SIZE=16` in the Render service environment.
+After deploying the new backend, run `python scripts/reindex_jina_embeddings.py` from
+`backend/` once to re-embed existing documents from their stored PDFs. This creates a
+separate model/dimension-specific Qdrant collection; the previous MiniLM collection is
+left intact. Re-indexing is safe to repeat and processes documents sequentially.
+
 ## Security
 
 - Passwords are hashed with Argon2id.
@@ -329,6 +344,7 @@ Configure Neon PostgreSQL, Qdrant Cloud, Cloudinary, and at least one LLM provid
 - CORS uses explicit allowed origins.
 - Database and vector operations preserve company-level tenant isolation.
 - PDF downloads require tenant ownership and use authenticated/private storage.
+- Document chunks and user queries are sent to Jina AI for embedding; review its data handling and privacy terms before processing confidential content.
 - Public widget sessions use signed tokens, domain allowlists, and rate limits.
 - Secrets and generated vector/database data are excluded from Git.
 
@@ -336,7 +352,7 @@ Configure Neon PostgreSQL, Qdrant Cloud, Cloudinary, and at least one LLM provid
 
 - Logout clears the browser cookie but does not maintain a server-side JWT revocation registry.
 - Public and chat limits use application-level counters.
-- The vector collection dimension must remain compatible with the configured embedding model.
+- Jina vectors are written to a model/dimension-specific Qdrant collection; MiniLM vectors are not mixed with them.
 - ChromaDB to Qdrant migration requires a separate export and re-indexing procedure.
 
 ## Documentation

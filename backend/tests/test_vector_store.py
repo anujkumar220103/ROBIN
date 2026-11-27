@@ -36,6 +36,7 @@ def test_upsert_and_delete_are_scoped_by_tenant_and_document(monkeypatch):
     company_id = uuid.uuid4()
     document_id = uuid.uuid4()
     client = QdrantClient(":memory:")
+    monkeypatch.setattr(vector_store.settings, "EMBEDDING_DIMENSION", 2)
     monkeypatch.setattr(
         vector_store,
         "get_vector_store",
@@ -46,7 +47,7 @@ def test_upsert_and_delete_are_scoped_by_tenant_and_document(monkeypatch):
             company_id,
             [_chunk(company_id, document_id)],
             [[1.0, 0.0]],
-            "test-embedding-model",
+            vector_store.settings.EMBEDDING_MODEL,
             2,
         )
 
@@ -59,7 +60,6 @@ def test_upsert_and_delete_are_scoped_by_tenant_and_document(monkeypatch):
         assert stored[0].payload["company_id"] == str(company_id)
         assert stored[0].payload["document_id"] == str(document_id)
         assert stored[0].payload["chunk_id"] == f"{document_id}:chunk:000000"
-
         vector_store.delete_document_vectors(company_id, document_id)
         assert client.count(vector_store.collection_name()).count == 0
     finally:
@@ -131,3 +131,11 @@ def test_search_filters_by_company_ready_documents_and_embedding(monkeypatch):
     assert conditions["company_id"].match.value == str(company_id)
     assert conditions["document_id"].match.any == [str(document_id)]
     assert conditions["embedding_model"].match.value == "test-embedding-model"
+
+
+def test_model_and_dimension_use_separate_qdrant_collections():
+    legacy = vector_store.collection_name("sentence-transformers/all-MiniLM-L6-v2", 384)
+    jina = vector_store.collection_name("jina-embeddings-v3", 1024)
+    reduced_jina = vector_store.collection_name("jina-embeddings-v3", 512)
+
+    assert len({legacy, jina, reduced_jina}) == 3

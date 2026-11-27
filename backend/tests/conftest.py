@@ -6,6 +6,13 @@ import pytest
 
 # Tests ke liye dummy JWT secret set karo — real secret expose nahi karte.
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-unit-tests-only-32chars!")
+os.environ.update({
+    "EMBEDDING_PROVIDER": "jina",
+    "JINA_API_KEY": "test-jina-api-key",
+    "EMBEDDING_MODEL": "jina-embeddings-v3",
+    "EMBEDDING_DIMENSION": "1024",
+    "EMBEDDING_BATCH_SIZE": "16",
+})
 os.environ.setdefault("DATABASE_URL", "")
 
 from fastapi.testclient import TestClient

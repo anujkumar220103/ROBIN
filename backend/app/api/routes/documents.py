@@ -14,7 +14,7 @@ from app.models.company import Company
 from app.models.document import Document
 from app.models.user import User
 from app.rag.ingestion import process_document
-from app.rag.pdf_loader import extract_pdf_pages
+from app.rag.pdf_loader import iter_pdf_pages
 from app.rag.vector_store import delete_document_vectors
 from app.schemas.document import (
     DocumentListResponse,
@@ -71,7 +71,9 @@ async def upload_document(
         try:
             pdf_path = materialize_document(storage_path)
             try:
-                _, page_count = extract_pdf_pages(str(pdf_path), settings.MAX_PDF_PAGES)
+                with iter_pdf_pages(str(pdf_path), settings.MAX_PDF_PAGES) as (page_count, pages):
+                    for _page in pages:
+                        pass
             finally:
                 if is_cloudinary_reference(storage_path):
                     pdf_path.unlink(missing_ok=True)

@@ -7,8 +7,11 @@ from qdrant_client import QdrantClient, models
 from app.core.config import settings
 
 
-def collection_name() -> str:
-    return settings.QDRANT_COLLECTION_NAME
+def collection_name(model_name: str | None = None, dimension: int | None = None) -> str:
+    model = model_name or settings.EMBEDDING_MODEL
+    size = dimension if dimension is not None else settings.EMBEDDING_DIMENSION
+    model_suffix = model.replace("/", "_").replace(".", "_")
+    return f"{settings.QDRANT_COLLECTION_NAME}_{model_suffix}_{size}"
 
 
 class VectorStore:
@@ -39,9 +42,9 @@ def get_vector_store() -> VectorStore:
     return _vector_store
 
 
-def _ensure_collection(dimension: int) -> None:
+def _ensure_collection(dimension: int, model_name: str) -> None:
     store = get_vector_store()
-    name = collection_name()
+    name = collection_name(model_name, dimension)
     if not store._client.collection_exists(name):
         try:
             store._client.create_collection(
@@ -78,12 +81,14 @@ def upsert_chunks(company_id: uuid.UUID, chunks: list[dict], embeddings: list[li
         raise RuntimeError("Embedding count does not match chunk count.")
     if not chunks:
         return
+    if dimension <= 0 or any(len(embedding) != dimension for embedding in embeddings):
+        raise ValueError("An embedding does not match the configured vector dimension.")
     if any(str(chunk["company_id"]) != str(company_id) for chunk in chunks):
         raise ValueError("A vector chunk belongs to a different company.")
-    _ensure_collection(dimension)
+    _ensure_collection(dimension, model_name)
     store = get_vector_store()
     store._client.upsert(
-        collection_name=collection_name(),
+        collection_name=collection_name(model_name, dimension),
         points=[
             models.PointStruct(
                 id=str(uuid.uuid5(uuid.NAMESPACE_URL, f"robin-ai:{chunk['chunk_id']}")),

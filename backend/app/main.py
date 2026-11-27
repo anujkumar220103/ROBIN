@@ -26,15 +26,22 @@ async def lifespan(application: FastAPI):
         from app.models.document import Document
         db = SessionLocal()
         try:
-            interrupted = db.query(Document).filter(Document.status == "processing").all()
-            for document in interrupted:
-                document.status = "failed"
-                document.error_message = "Document processing was interrupted. You can retry it."
+            interrupted = db.query(Document).filter(
+                Document.status == "processing"
+            ).update(
+                {
+                    Document.status: "failed",
+                    Document.error_message: "Document processing was interrupted. You can retry it.",
+                },
+                synchronize_session=False,
+            )
             db.commit()
+            if interrupted:
+                logger.warning("Marked %d interrupted documents as failed.", interrupted)
         finally:
             db.close()
     except Exception:
-        logger.warning("Document startup recovery could not access the database.")
+        logger.exception("Document startup recovery could not access the database.")
     yield
 
 app = FastAPI(

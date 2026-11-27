@@ -5,15 +5,15 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def split_pages(pages: list[dict], document_id: str, company_id: str, filename: str,
                 model_name: str, chunk_size: int = 200, overlap: int = 30,
-                tokenizer=None, max_chunks: int = 5000) -> list[dict]:
+                max_chunks: int = 5000, start_index: int = 0) -> list[dict]:
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=overlap,
         separators=["\n\n", "\n", ". ", " ", ""],
-        length_function=lambda text: len(tokenizer.encode(text, add_special_tokens=True)) if tokenizer else len(text.split()),
+        length_function=lambda text: len(text.split()),
     )
     chunks: list[dict] = []
-    chunk_index = 0
+    chunk_index = start_index
     for page in pages:
         text = (page.get("text") or "").strip()
         if not text:
@@ -24,11 +24,6 @@ def split_pages(pages: list[dict], document_id: str, company_id: str, filename: 
                 continue
             if len(chunks) >= max_chunks:
                 raise ValueError("This document exceeds the maximum supported chunk count.")
-            if tokenizer:
-                token_count = len(tokenizer.encode(part, add_special_tokens=True))
-                if token_count > chunk_size:
-                    part_tokens = tokenizer.encode(part, add_special_tokens=False)
-                    part = tokenizer.decode(part_tokens[:chunk_size], skip_special_tokens=True).strip()
             chunks.append({
                 "chunk_id": f"{document_id}:chunk:{chunk_index:06d}",
                 "company_id": company_id,

@@ -52,7 +52,7 @@ def test_chunk_ids_are_deterministic_and_page_aware():
         "11111111-1111-1111-1111-111111111111",
         "22222222-2222-2222-2222-222222222222",
         "policy.pdf",
-        "sentence-transformers/all-MiniLM-L6-v2",
+        "jina-embeddings-v3",
         chunk_size=200,
         overlap=30,
     )

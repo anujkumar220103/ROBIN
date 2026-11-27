@@ -10,6 +10,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.core.config import settings
 from app.rag.vector_store import upsert_chunks
 
+_LEGACY_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
 
 def _source_client():
     source = settings.CHROMA_MIGRATION_SOURCE.strip().lower()
@@ -50,7 +52,7 @@ def main() -> None:
             raise RuntimeError(
                 f"Chroma collection {collection.name!r} has no company_id metadata."
             )
-        model_name = collection_metadata.get("embedding_model", settings.EMBEDDING_MODEL)
+        model_name = collection_metadata.get("embedding_model", _LEGACY_EMBEDDING_MODEL)
         total = collection.count()
         for offset in range(0, total, 100):
             data = collection.get(
