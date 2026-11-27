@@ -30,7 +30,10 @@
   var widgetUrl = widgetBase + "/" + encodeURIComponent(publicId) + "?origin=" + encodeURIComponent(window.location.origin);
   iframe.src = widgetUrl;
   iframe.title = "ROBIN chatbot";
-  iframe.setAttribute("allow", "clipboard-write");
+  // microphone is required for Speech-to-Text voice input inside the iframe.
+  // The host page must also permit microphone access via its own Permissions-Policy
+  // or by not restricting it.  See ROBIN AI embedding documentation.
+  iframe.setAttribute("allow", "clipboard-write; microphone");
   iframe.style.cssText = "position:fixed;right:20px;bottom:78px;width:380px;height:560px;max-width:calc(100vw - 32px);max-height:calc(100vh - 110px);border:0;border-radius:16px;box-shadow:0 16px 48px rgba(15,23,42,.25);z-index:2147483000;display:none;background:white";
   document.body.appendChild(iframe);
 
