@@ -107,13 +107,29 @@ def get_embed_code(
     current_company: Company = Depends(get_current_company),
     db: Session = Depends(get_db),
 ):
+    from urllib.parse import urlsplit, urlunsplit
+
     chatbot = get_or_create_chatbot(db, current_company)
-    widget_base = settings.PUBLIC_WIDGET_URL.rstrip("/")
-    frontend_origin = widget_base[:-len("/widget")] if widget_base.endswith("/widget") else widget_base
-    script = f"{frontend_origin}/widget.js"
+
+    # Parse the configured widget URL to reliably extract the origin.
+    # This avoids duplicate-protocol bugs from naive string manipulation.
+    raw_url = settings.PUBLIC_WIDGET_URL.strip().rstrip("/")
+    parsed = urlsplit(raw_url)
+
+    # Enforce HTTPS in production.
+    scheme = "https" if settings.is_production else parsed.scheme
+    frontend_origin = urlunsplit((scheme, parsed.netloc, "", "", ""))
+    widget_base = f"{frontend_origin}/widget"
+    script_url = f"{frontend_origin}/widget.js"
+
     return {
         "public_id": chatbot.public_id,
         "is_active": chatbot.is_active,
-        "widget_url": settings.PUBLIC_WIDGET_URL,
-        "embed_code": f'<script src="{script}" data-robin-chatbot="{chatbot.public_id}" data-robin-widget-base="{widget_base}" async></script>',
+        "widget_url": widget_base,
+        "embed_code": (
+            f'<script src="{script_url}"'
+            f' data-robin-chatbot="{chatbot.public_id}"'
+            f' data-robin-widget-base="{widget_base}"'
+            f' async></script>'
+        ),
     }
