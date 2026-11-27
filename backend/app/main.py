@@ -59,11 +59,19 @@ app = FastAPI(
 async def add_security_headers(request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     if settings.is_production:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    # Public chatbot API endpoints are called by the ROBIN frontend running inside
+    # an iframe hosted on the ROBIN origin — not framed directly by external sites.
+    # Keeping X-Frame-Options: DENY on JSON responses is harmless but add it only
+    # for non-public paths so the header remains accurate.
+    path = request.url.path
+    if not path.startswith(f"{settings.API_V1_PREFIX}/public/"):
+        response.headers["X-Frame-Options"] = "DENY"
+
     return response
 
 # ---------------------------------------------------------------------------

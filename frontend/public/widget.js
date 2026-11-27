@@ -5,8 +5,20 @@
   if (!script) return;
 
   var publicId = script.getAttribute("data-robin-chatbot");
-  var widgetBase = script.getAttribute("data-robin-widget-base") || "http://localhost:5173/widget";
   if (!publicId) return;
+
+  // Derive the widget base from the explicit attribute, or fall back to the
+  // origin of this script file so the URL is always correct regardless of
+  // which domain serves widget.js.
+  var widgetBase = script.getAttribute("data-robin-widget-base");
+  if (!widgetBase) {
+    var scriptSrc = script.src || "";
+    // Strip the filename to get the directory, then append /widget.
+    widgetBase = scriptSrc
+      ? scriptSrc.substring(0, scriptSrc.lastIndexOf("/")) + "/widget"
+      : window.location.origin + "/widget";
+  }
+  widgetBase = widgetBase.replace(/\/+$/, "");
 
   var launcher = document.createElement("button");
   launcher.textContent = "Chat";
@@ -15,7 +27,7 @@
   document.body.appendChild(launcher);
 
   var iframe = document.createElement("iframe");
-  var widgetUrl = widgetBase.replace(/\/+$/, "") + "/" + encodeURIComponent(publicId) + "?origin=" + encodeURIComponent(window.location.origin);
+  var widgetUrl = widgetBase + "/" + encodeURIComponent(publicId) + "?origin=" + encodeURIComponent(window.location.origin);
   iframe.src = widgetUrl;
   iframe.title = "ROBIN chatbot";
   iframe.setAttribute("allow", "clipboard-write");
