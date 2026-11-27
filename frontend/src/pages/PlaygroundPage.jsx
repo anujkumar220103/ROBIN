@@ -1,8 +1,10 @@
 // Provides the authenticated knowledge base chatbot interface.
 // Two modes: Chat (RAG answers with citations) and Retrieval (raw passage search).
+// Includes Speech-to-Text (voice input) and Text-to-Speech (voice output) via
+// the browser-native Web Speech API.
 
-import { useState, useRef, useEffect } from 'react'
-import { RefreshCw, MessageSquare, Search, FileText, Loader2, AlertCircle } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { RefreshCw, MessageSquare, Search, FileText, Loader2, AlertCircle, Volume2 } from 'lucide-react'
 import { chatService } from '../services/chatService.js'
 import { knowledgeBaseService } from '../services/knowledgeBaseService.js'
 import { documentService } from '../services/documentService.js'
@@ -10,6 +12,8 @@ import ChatMessage from '../components/chat/ChatMessage.jsx'
 import ChatComposer from '../components/chat/ChatComposer.jsx'
 import ChatEmptyState from '../components/chat/ChatEmptyState.jsx'
 import ChatResponseMetadata from '../components/chat/ChatResponseMetadata.jsx'
+import useSpeechRecognition from '../hooks/useSpeechRecognition.js'
+import useSpeechSynthesis from '../hooks/useSpeechSynthesis.js'
 
 const MODES = { CHAT: 'chat', RETRIEVAL: 'retrieval' }
 
@@ -32,8 +36,51 @@ export default function PlaygroundPage() {
   const [searchError, setSearchError] = useState('')
   const [searched, setSearched] = useState(false)
 
+  // Voice state
+  const [lang, setLang] = useState('en-IN')
+  const [autoSpeak, setAutoSpeak] = useState(false)
+
   const messagesEndRef = useRef(null)
   const abortControllerRef = useRef(null)
+
+  // ── TTS ───────────────────────────────────────────────────────────────────
+  const { speakingId, speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis()
+
+  // ── STT ───────────────────────────────────────────────────────────────────
+  const handleSTTResult = useCallback((transcript) => {
+    setInputValue((prev) => {
+      const trimmed = prev.trimEnd()
+      return trimmed ? `${trimmed} ${transcript}` : transcript
+    })
+  }, [])
+
+  const handleSTTInterim = useCallback((interim) => {
+    // Show interim text visually (appended without committing) so the user
+    // can see the recognition in progress.  We only update if the textarea
+    // is currently empty to avoid clobbering typed text.
+    // (Intentionally not wiring interim into inputValue here — final result
+    //  replaces it cleanly via handleSTTResult.)
+    void interim
+  }, [])
+
+  const {
+    listening,
+    error: sttError,
+    startListening,
+    stopListening,
+    abortListening,
+    isSupported: sttSupported,
+  } = useSpeechRecognition({ lang, onResult: handleSTTResult, onInterim: handleSTTInterim })
+
+  function handleMicToggle() {
+    if (listening) {
+      stopListening()
+    } else {
+      // Stop any active TTS before starting the microphone.
+      stopSpeech()
+      startListening()
+    }
+  }
 
   // Check if company has ready documents.
   useEffect(() => {
@@ -47,11 +94,20 @@ export default function PlaygroundPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, chatLoading])
 
+  // Stop speech and listening when the page is closed / mode changes.
+  useEffect(() => {
+    return () => {
+      abortListening()
+      stopSpeech()
+    }
+  }, [abortListening, stopSpeech])
+
   function startNewConversation() {
-    // Cancel any in-flight request so stale responses don't appear in the new conversation.
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
+    abortListening()
+    stopSpeech()
     setMessages([])
     setInputValue('')
     setChatError('')
@@ -62,39 +118,44 @@ export default function PlaygroundPage() {
     const question = inputValue.trim()
     if (!question || chatLoading) return
 
-    // Build bounded history from current messages (user + assistant pairs only).
+    // Stop listening/speaking before sending.
+    if (listening) stopListening()
+    stopSpeech()
+
     const history = messages
       .filter(m => m.role === 'user' || m.role === 'assistant')
       .slice(-6)
       .map(m => ({ role: m.role, content: m.content }))
 
-    setMessages(prev => [...prev, { role: 'user', content: question, id: Date.now() }])
+    setMessages(prev => [...prev, { role: 'user', content: question, id: `user-${Date.now()}` }])
     setInputValue('')
     setChatLoading(true)
     setChatError('')
 
-    // AbortController lets us cancel the request if user starts a new conversation.
     abortControllerRef.current = new AbortController()
 
     try {
       const res = await chatService.askQuestion(question, history, abortControllerRef.current.signal)
       const data = res.data
 
+      const msgId = `assistant-${Date.now()}`
       const assistantMessage = {
         role: 'assistant',
         content: data.answer,
         sources: data.sources || [],
         status: data.status,
-        id: Date.now() + 1,
+        id: msgId,
       }
 
       setMessages(prev => [...prev, assistantMessage])
       setLastMetadata(data.metadata || null)
-    } catch (err) {
-      if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') {
-        // User started a new conversation — ignore stale response.
-        return
+
+      // Auto-speak the new assistant answer if the toggle is on.
+      if (autoSpeak && ttsSupported) {
+        speak(data.answer, msgId, lang)
       }
+    } catch (err) {
+      if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return
 
       const status = err.response?.status
       let errorMsg = 'Something went wrong. Please try again.'
@@ -145,13 +206,33 @@ export default function PlaygroundPage() {
           </p>
         </div>
         {mode === MODES.CHAT && (
-          <button
-            onClick={startNewConversation}
-            className="btn-secondary flex items-center gap-2 text-sm flex-shrink-0"
-          >
-            <RefreshCw size={14} />
-            New conversation
-          </button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Auto-speak toggle */}
+            {ttsSupported && (
+              <button
+                type="button"
+                onClick={() => setAutoSpeak(v => !v)}
+                title={autoSpeak ? 'Disable auto voice response' : 'Enable auto voice response'}
+                aria-pressed={autoSpeak}
+                className={[
+                  'flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors',
+                  autoSpeak
+                    ? 'border-accent bg-accent/10 text-accent'
+                    : 'border-border bg-surface text-secondary-text hover:text-primary-text',
+                ].join(' ')}
+              >
+                <Volume2 size={13} />
+                Auto-speak {autoSpeak ? 'On' : 'Off'}
+              </button>
+            )}
+            <button
+              onClick={startNewConversation}
+              className="btn-secondary flex items-center gap-2 text-sm"
+            >
+              <RefreshCw size={14} />
+              New conversation
+            </button>
+          </div>
         )}
       </div>
 
@@ -190,20 +271,23 @@ export default function PlaygroundPage() {
               <ChatEmptyState hasDocuments={hasDocuments} />
             ) : (
               messages.map(msg => (
-                <ChatMessage key={msg.id} message={msg} />
+                <ChatMessage
+                  key={msg.id}
+                  message={msg}
+                  onSpeak={msg.role === 'assistant' ? speak : undefined}
+                  isPlaying={speakingId === (msg.id ?? msg.content.slice(0, 40))}
+                  lang={lang}
+                />
               ))
             )}
 
-            {/* Loading indicator while waiting for the AI */}
             {chatLoading && (
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center bg-surface border border-border flex-shrink-0">
                   <Loader2 size={14} className="animate-spin text-secondary-text" />
                 </div>
                 <div className="bg-surface border border-border rounded-xl rounded-tl-sm px-4 py-3">
-                  <div className="flex gap-1 items-center">
-                    <span className="text-xs text-secondary-text">Searching documents and generating answer…</span>
-                  </div>
+                  <span className="text-xs text-secondary-text">Searching documents and generating answer…</span>
                 </div>
               </div>
             )}
@@ -221,12 +305,17 @@ export default function PlaygroundPage() {
           {/* Technical metadata */}
           {lastMetadata && <ChatResponseMetadata metadata={lastMetadata} />}
 
-          {/* Input composer */}
+          {/* Input composer with STT */}
           <ChatComposer
             value={inputValue}
             onChange={setInputValue}
             onSubmit={handleSend}
             loading={chatLoading}
+            listening={listening}
+            onMicToggle={handleMicToggle}
+            lang={lang}
+            onLangChange={setLang}
+            sttError={sttError}
           />
         </div>
       )}
