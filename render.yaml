@@ -19,7 +19,45 @@ services:
         sync: false
       - key: QDRANT_API_KEY
         sync: false
+      - key: JINA_API_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: PUBLIC_WIDGET_URL
+        sync: false
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: WIDGET_SESSION_SECRET
         generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: "none"
+      - key: EMBEDDING_PROVIDER
+        value: jina
+      - key: EMBEDDING_MODEL
+        value: jina-embeddings-v3
+      - key: EMBEDDING_DIMENSION
+        value: "1024"
+      - key: EMBEDDING_BATCH_SIZE
+        value: "16"
+      - key: EMBEDDING_TIMEOUT_SECONDS
+        value: "30"
+      - key: EMBEDDING_MAX_RETRIES
+        value: "3"
+      - key: EMBEDDING_RETRY_BASE_SECONDS
+        value: "0.5"
+      - key: MAX_CONCURRENT_INGESTIONS
+        value: "1"
