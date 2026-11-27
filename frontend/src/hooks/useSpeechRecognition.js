@@ -13,6 +13,26 @@ const SpeechRecognitionAPI =
 
 export const isSpeechRecognitionSupported = Boolean(SpeechRecognitionAPI)
 
+// ── Permissions Policy check ─────────────────────────────────────────────────
+// Returns true when the document's effective Permissions-Policy allows
+// microphone access.  Uses featurePolicy (Chrome/Edge) with a fallback that
+// assumes allowed when the API is unavailable (Firefox, Safari).
+function isMicrophoneAllowedByPolicy() {
+  try {
+    // featurePolicy is available in Chrome/Edge.
+    if (typeof document !== 'undefined' && document.featurePolicy) {
+      return document.featurePolicy.allowsFeature('microphone')
+    }
+    // permissionsPolicy is the newer spec name (not yet widely implemented).
+    if (typeof document !== 'undefined' && document.permissionsPolicy) {
+      return document.permissionsPolicy.allowsFeature('microphone')
+    }
+  } catch {
+    // Any access error → assume allowed; the browser will gate it properly.
+  }
+  return true
+}
+
 /**
  * @param {object}   opts
  * @param {string}   opts.lang         BCP-47 language tag, e.g. 'en-IN' or 'hi-IN'
@@ -54,7 +74,20 @@ export default function useSpeechRecognition({ lang = 'en-IN', onResult, onInter
       switch (event.error) {
         case 'not-allowed':
         case 'permission-denied':
-          setError('Microphone access was denied. Please allow microphone permission in your browser settings.')
+          // Distinguish between a Permissions-Policy block (server config) and
+          // a user-initiated browser permission denial — they produce the same
+          // error code but require different remediation steps.
+          if (!isMicrophoneAllowedByPolicy()) {
+            setError(
+              'Microphone access is blocked by this page\'s security policy. ' +
+              'Please contact the site administrator.'
+            )
+          } else {
+            setError(
+              'Microphone permission was denied. ' +
+              'Click the camera/microphone icon in your browser\'s address bar and allow access, then try again.'
+            )
+          }
           break
         case 'no-speech':
           setError('No speech was detected. Please try again.')
@@ -68,6 +101,12 @@ export default function useSpeechRecognition({ lang = 'en-IN', onResult, onInter
         case 'aborted':
           // User stopped listening — not an error worth showing.
           setError(null)
+          break
+        case 'service-not-allowed':
+          setError(
+            'Speech recognition is not available on this page. ' +
+            'Ensure the page is served over HTTPS.'
+          )
           break
         default:
           setError(`Speech recognition error: ${event.error}`)
@@ -104,6 +143,15 @@ export default function useSpeechRecognition({ lang = 'en-IN', onResult, onInter
   const startListening = useCallback(() => {
     if (!SpeechRecognitionAPI) {
       setError('Speech recognition is not supported in this browser. Please use Chrome or Edge.')
+      return
+    }
+    // Check the Permissions Policy before attempting to start — this gives a
+    // clearer error immediately instead of waiting for onerror to fire.
+    if (!isMicrophoneAllowedByPolicy()) {
+      setError(
+        'Microphone access is blocked by this page\'s security policy. ' +
+        'Please contact the site administrator.'
+      )
       return
     }
     if (!recognitionRef.current) return
